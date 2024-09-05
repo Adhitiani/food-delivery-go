@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"project/food-delivery/service"
+	"strconv"
 )
 
 func GetAllSuppliersHandler(supplierService *service.SupplierService) http.HandlerFunc {
@@ -33,8 +34,15 @@ func GetAllSuppliersHandler(supplierService *service.SupplierService) http.Handl
 	}
 }
 
-func GetSupplierByIdHandler(supplierService service.SupplierService, id int) http.HandlerFunc {
+func GetSupplierByIdHandler(supplierService *service.SupplierService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// get the id from Url path
+		id, err := strconv.Atoi(r.PathValue("id"))
+		if err != nil || id < 1 {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
+
 		supplier, err := supplierService.GetSupplierById(id)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error get suppliers by id: %d, %v", id, err), http.StatusInternalServerError)

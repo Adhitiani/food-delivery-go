@@ -29,7 +29,7 @@ func main() {
 	//create a new servemux
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /suppliers", handler.GetAllSuppliersHandler(supplierService))
-	//mux.HandleFunc("GET /suppliers/:id", handler.GetSupplierByIdHandler(*supplierService, id))
+	mux.HandleFunc("GET /suppliers/{id}", handler.GetSupplierByIdHandler(supplierService))
 
 	// Wrap the mux with CORS middleware
 	handler := util.CorsMiddleware(mux)

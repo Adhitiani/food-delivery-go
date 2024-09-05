@@ -41,7 +41,7 @@ func (r *SupplierDbRepository) InsertSuppliers(suppliers []model.Supplier) error
 	return nil
 }
 
-func (r *SupplierDbRepository) GetAllSuppliers() ([]model.Supplier, error) {
+func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
 	stmt, err := r.db.Prepare(`SELECT id, name, type, image, opening_time, closing_time FROM suppliers ORDER BY id`)
 	if err != nil {
 		return nil, fmt.Errorf("error preparing statement: %v", err)
@@ -57,11 +57,12 @@ func (r *SupplierDbRepository) GetAllSuppliers() ([]model.Supplier, error) {
 	defer rows.Close()
 
 	// Create a slice to hold the suppliers
-	var suppliers []model.Supplier
+	var suppliers []*model.Supplier
 
 	// Iterate through the result set and scan each row into a Supplier struct
 	for rows.Next() {
-		var supplier model.Supplier
+		// Create a new Supplier pointer for each row
+		supplier := &model.Supplier{}
 		var openingTime, closingTime string
 
 		err := rows.Scan(&supplier.Id, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)

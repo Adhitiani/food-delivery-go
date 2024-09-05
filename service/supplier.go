@@ -111,7 +111,7 @@ func (s *SupplierService) SupplierUpdater() {
 	}()
 }
 
-func (s *SupplierService) GetAllSuppliers() ([]model.Supplier, error) {
+func (s *SupplierService) GetAllSuppliers() ([]*model.Supplier, error) {
 	return s.repo.GetAllSuppliers()
 }
 
