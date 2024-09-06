@@ -23,8 +23,12 @@ func main() {
 
 	supplierRepo := postgres.NewSupplierDbRepository(db)
 	supplierService := service.NewSupplierService(supplierRepo)
+	MenuRepo := postgres.NewMenuItemRepository(db)
+	MenuService := service.NewMenuItemService(MenuRepo)
 
-	supplierService.SupplierUpdater()
+	MenuService.FetchMenuItem()
+
+	//supplierService.SupplierUpdater()
 
 	//create a new servemux
 	mux := http.NewServeMux()
