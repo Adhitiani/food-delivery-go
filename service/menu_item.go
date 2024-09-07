@@ -10,6 +10,7 @@ import (
 	"project/food-delivery/model"
 	"project/food-delivery/repository"
 	"project/food-delivery/util"
+	"time"
 )
 
 type MenuItemService struct {
@@ -70,6 +71,31 @@ func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
 	log.Printf("total menu items : %d", len(allMenusItems))
 	return allMenusItems, nil
 
+}
+
+func (m *MenuItemService) FetchAndInsertMenuItem() error {
+	allMenusItems, err := m.FetchMenuItem()
+	if err != nil {
+		log.Fatalf("error fetching menuItem: %v", err)
+	}
+
+	err = m.repo.InsertMenuItem(allMenusItems)
+	if err != nil {
+		log.Fatalf("error inserting menuItem to database: %v", err)
+	}
+	//log.Println("MenuItem inserted into the database successfully!")
+	return nil
+}
+
+func (m MenuItemService) PriceUpdater() {
+	go func() {
+		for {
+			m.FetchAndInsertMenuItem()
+			log.Println("Price Update successfully")
+
+			time.Sleep(30 * time.Minute)
+		}
+	}()
 }
 
 // func GetAllSuppliersId() ([]int, error) {

@@ -26,7 +26,7 @@ func main() {
 	MenuRepo := postgres.NewMenuItemRepository(db)
 	MenuService := service.NewMenuItemService(MenuRepo)
 
-	MenuService.FetchMenuItem()
+	MenuService.PriceUpdater()
 
 	//supplierService.SupplierUpdater()
 

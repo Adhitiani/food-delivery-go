@@ -1,6 +1,8 @@
 package repository
 
+import "project/food-delivery/model"
+
 type MenuItemRepository interface {
 	GetAllSuppliersId() ([]int, error)
-	//GetAllMenuItem() (MenuItem []model.MenuItem, err error)
+	InsertMenuItem([]model.MenuItem) error
 }
