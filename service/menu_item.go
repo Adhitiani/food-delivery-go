@@ -14,11 +14,15 @@ import (
 )
 
 type MenuItemService struct {
-	repo repository.MenuItemRepository
+	repo         repository.MenuItemRepository
+	supplierRepo repository.SupplierRepository
 }
 
-func NewMenuItemService(repo repository.MenuItemRepository) *MenuItemService {
-	return &MenuItemService{repo: repo}
+func NewMenuItemService(repo repository.MenuItemRepository, supplierRepo repository.SupplierRepository) *MenuItemService {
+	return &MenuItemService{
+		repo:         repo,
+		supplierRepo: supplierRepo,
+	}
 }
 
 func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
@@ -31,8 +35,14 @@ func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
 	// append it in the responseAllmenu a slice of menu
 
 	client := util.CreateInsecureClient()
+	if m.supplierRepo == nil {
+		return nil, fmt.Errorf("supplierRepo is not initialized")
+	}
+	if m.repo == nil {
+		return nil, fmt.Errorf("menuItemRepo is not initialized")
+	}
 
-	Ids, err := m.repo.GetAllSuppliersId()
+	Ids, err := m.supplierRepo.GetAllSuppliersId()
 	if err != nil {
 		return nil, fmt.Errorf("error get all supplier id: %v", err)
 	}

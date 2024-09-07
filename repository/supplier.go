@@ -9,5 +9,5 @@ type SupplierRepository interface {
 	GetAllSuppliers() ([]*model.Supplier, error)
 	GetSupplierById(id int) (*model.Supplier, error)
 	DoesSupplierExist(id int) (bool, error)
-	//GetAllSuppliersId() ([]int, error)
+	GetAllSuppliersId() ([]int, error)
 }

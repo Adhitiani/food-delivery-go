@@ -24,7 +24,7 @@ func main() {
 	supplierRepo := postgres.NewSupplierDbRepository(db)
 	supplierService := service.NewSupplierService(supplierRepo)
 	MenuRepo := postgres.NewMenuItemRepository(db)
-	MenuService := service.NewMenuItemService(MenuRepo)
+	MenuService := service.NewMenuItemService(MenuRepo, supplierRepo)
 
 	MenuService.PriceUpdater()
 
