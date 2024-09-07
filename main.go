@@ -34,8 +34,9 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /suppliers", handler.GetAllSuppliersHandler(supplierService))
 	mux.HandleFunc("GET /suppliers/{id}", handler.GetSupplierByIdHandler(supplierService))
+	mux.HandleFunc("GET /menus/{supplierId}", handler.GetMenuItemBySupplierIdHandler(MenuService, supplierService))
 
-	// Wrap the mux with CORS middleware
+	// Wrap the mux with CORS ddleware
 	handler := util.CorsMiddleware(mux)
 
 	log.Println("Starting server on :8080")

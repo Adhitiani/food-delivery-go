@@ -67,7 +67,7 @@ func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
 
 		allMenusItems = append(allMenusItems, menuItems.Menu...)
 	}
-	log.Printf("menu items : %v", allMenusItems)
+	//log.Printf("menu items : %v", allMenusItems)
 	log.Printf("total menu items : %d", len(allMenusItems))
 	return allMenusItems, nil
 
@@ -87,7 +87,7 @@ func (m *MenuItemService) FetchAndInsertMenuItem() error {
 	return nil
 }
 
-func (m MenuItemService) PriceUpdater() {
+func (m *MenuItemService) PriceUpdater() {
 	go func() {
 		for {
 			m.FetchAndInsertMenuItem()
@@ -98,40 +98,6 @@ func (m MenuItemService) PriceUpdater() {
 	}()
 }
 
-// func GetAllSuppliersId() ([]int, error) {
-// 	// Set up PostgreSQL connection
-// 	connStr := "user=food_delivery_user password=password123 dbname=food_delivery sslmode=disable"
-// 	db, err := sql.Open("postgres", connStr)
-// 	if err != nil {
-// 		log.Fatalf("error connecting to the database: %v", err)
-// 	}
-// 	defer db.Close()
-
-// 	rows, err := db.Query(`SELECT external_id AS id FROM suppliers ORDER BY external_id`)
-// 	if err != nil {
-// 		return []int{}, fmt.Errorf("error executing query: %v", err)
-// 	}
-
-// 	defer rows.Close()
-
-// 	var suppliersId []int
-
-// 	for rows.Next() {
-// 		var id int
-
-// 		if err := rows.Scan(&id); err != nil {
-// 			return nil, fmt.Errorf("error scanning row: %v", err)
-// 		}
-
-// 		suppliersId = append(suppliersId, id)
-
-// 	}
-
-// 	if err := rows.Err(); err != nil {
-// 		return nil, fmt.Errorf("error iterating over rows: %v", err)
-// 	}
-
-// 	log.Printf("Supplier id total: %d, %v", len(suppliersId), suppliersId)
-// 	return suppliersId, nil
-
-// }
+func (m *MenuItemService) GetMenuItemBySupplierId(id int) ([]*model.MenuItem, error) {
+	return m.repo.GetMenuItemBySupplierId(id)
+}

@@ -118,3 +118,7 @@ func (s *SupplierService) GetAllSuppliers() ([]*model.Supplier, error) {
 func (s *SupplierService) GetSupplierById(id int) (*model.Supplier, error) {
 	return s.repo.GetSupplierById(id)
 }
+
+func (s *SupplierService) DoesSupplierExist(id int) (bool, error) {
+	return s.repo.DoesSupplierExist(id)
+}

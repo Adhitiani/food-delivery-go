@@ -13,5 +13,5 @@ type MenuItem struct {
 	Image       string   `json:"image"`
 	Type        string   `json:"type"`
 	Ingredients []string `json:"ingredients"`
-	SupplierId  int
+	SupplierId  int      `json:"supplier_id"`
 }

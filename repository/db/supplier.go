@@ -92,8 +92,30 @@ func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
 	return suppliers, nil
 }
 
+func (r *SupplierDbRepository) DoesSupplierExist(id int) (bool, error) {
+	var exists bool
+	query := `SELECT EXISTS(SELECT 1 FROM suppliers WHERE id = $1)`
+
+	// Execute query to check if the supplier exists
+	err := r.db.QueryRow(query, id).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("error checking supplier existence: %v", err)
+	}
+
+	return exists, nil
+}
+
 // GetSupplierById fetches a supplier from the database by its ID and returns it.
 func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) {
+	// Check if the supplier exists
+	exists, err := r.DoesSupplierExist(id)
+	if err != nil {
+		return nil, fmt.Errorf("error checking supplier: %v", err)
+	}
+	if !exists {
+		return nil, fmt.Errorf("supplier by ID %d does not exist: %v", id, err)
+	}
+
 	//prepare the sql query
 	stmt, err := r.db.Prepare(`SELECT id, name, type, image, opening_time, closing_time FROM suppliers  WHERE id =$1`)
 	if err != nil {
