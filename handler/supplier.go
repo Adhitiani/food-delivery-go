@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"project/food-delivery/service"
 	"strconv"
@@ -18,7 +17,7 @@ func GetAllSuppliersHandler(supplierService *service.SupplierService) http.Handl
 			return
 		}
 
-		log.Printf("suppliers handlers: %v", suppliers)
+		//log.Printf("suppliers handlers: %v", suppliers)
 
 		// Convert the suppliers to JSON
 		w.Header().Set("Content-Type", "application/json")
