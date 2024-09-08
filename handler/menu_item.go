@@ -12,7 +12,7 @@ import (
 func GetMenuItemBySupplierIdHandler(menuItemService *service.MenuItemService, supplierService *service.SupplierService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//extrac the id from url
-		id, err := strconv.Atoi(r.PathValue("supplierId"))
+		id, err := strconv.Atoi(r.PathValue("id"))
 		//log.Printf("id %d", id)
 
 		if err != nil || id < 1 {

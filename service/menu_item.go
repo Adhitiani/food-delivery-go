@@ -103,7 +103,7 @@ func (m *MenuItemService) PriceUpdater() {
 			m.FetchAndInsertMenuItem()
 			log.Println("Price Update successfully")
 
-			time.Sleep(30 * time.Minute)
+			time.Sleep(60 * time.Minute)
 		}
 	}()
 }

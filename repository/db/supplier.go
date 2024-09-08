@@ -42,7 +42,7 @@ func (r *SupplierDbRepository) InsertSuppliers(suppliers []model.Supplier) error
 }
 
 func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
-	stmt, err := r.db.Prepare(`SELECT id, name, type, image, opening_time, closing_time FROM suppliers ORDER BY id`)
+	stmt, err := r.db.Prepare(`SELECT external_id, name, type, image, opening_time, closing_time FROM suppliers ORDER BY external_id`)
 	if err != nil {
 		return nil, fmt.Errorf("error preparing statement: %v", err)
 	}
@@ -56,12 +56,9 @@ func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
 	}
 	defer rows.Close()
 
-	// Create a slice to hold the suppliers
 	var suppliers []*model.Supplier
 
-	// Iterate through the result set and scan each row into a Supplier struct
 	for rows.Next() {
-		// Create a new Supplier pointer for each row
 		supplier := &model.Supplier{}
 		var openingTime, closingTime string
 
@@ -105,28 +102,63 @@ func (r *SupplierDbRepository) DoesSupplierExist(id int) (bool, error) {
 	return exists, nil
 }
 
-// GetSupplierById fetches a supplier from the database by its ID and returns it.
+// // GetSupplierById fetches a supplier from the database by its ID and returns it.
+// func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) {
+// 	// Check if the supplier exists
+// 	exists, err := r.DoesSupplierExist(id)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error checking supplier: %v", err)
+// 	}
+// 	if !exists {
+// 		return nil, fmt.Errorf("supplier by ID %d does not exist: %v", id, err)
+// 	}
+
+// 	//prepare the sql query
+// 	stmt, err := r.db.Prepare(`SELECT external_id, name, type, image, opening_time, closing_time FROM suppliers  WHERE external_id =$1`)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error in preparing db statment: %v", err)
+// 	}
+// 	defer stmt.Close()
+
+// 	var supplier model.Supplier
+// 	var openingTime, closingTime string
+
+// 	err = stmt.QueryRow(id).Scan(&supplier.Id, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
+// 	if err != nil {
+// 		if err == sql.ErrNoRows {
+// 			return nil, fmt.Errorf("no supplier found with id: %d", id)
+// 		}
+// 		return nil, fmt.Errorf("error in scanning row: %v", err)
+// 	}
+
+// 	// Set the working hours in the Supplier struct
+// 	supplier.WorkingHours = model.WorkingHours{
+// 		Opening: openingTime,
+// 		Closing: closingTime,
+// 	}
+
+// 	log.Printf("Get a supliers by id: %d, supplier: %v", id, supplier)
+
+// 	return &supplier, nil
+// }
+
 func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) {
-	// Check if the supplier exists
+	// Log and check if the supplier exists
+	log.Printf("Checking if supplier exists with ID: %d", id)
 	exists, err := r.DoesSupplierExist(id)
 	if err != nil {
 		return nil, fmt.Errorf("error checking supplier: %v", err)
 	}
 	if !exists {
-		return nil, fmt.Errorf("supplier by ID %d does not exist: %v", id, err)
+		return nil, fmt.Errorf("supplier by ID %d does not exist", id)
 	}
 
-	//prepare the sql query
-	stmt, err := r.db.Prepare(`SELECT id, name, type, image, opening_time, closing_time FROM suppliers  WHERE id =$1`)
-	if err != nil {
-		return nil, fmt.Errorf("error in preparing db statment: %v", err)
-	}
-	defer stmt.Close()
-
+	// Directly use QueryRow without Prepare
 	var supplier model.Supplier
 	var openingTime, closingTime string
 
-	err = stmt.QueryRow(id).Scan(&supplier.Id, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
+	err = r.db.QueryRow(`SELECT external_id, name, type, image, opening_time, closing_time FROM suppliers WHERE external_id = $1`, id).Scan(
+		&supplier.Id, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("no supplier found with id: %d", id)
@@ -140,7 +172,8 @@ func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) 
 		Closing: closingTime,
 	}
 
-	log.Printf("Get a supliers by id: %d, supplier: %v", id, supplier)
+	// Log the supplier after fetching
+	log.Printf("Get a supplier by ID: %d, supplier: %v", id, supplier)
 
 	return &supplier, nil
 }
