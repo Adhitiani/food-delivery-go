@@ -65,7 +65,7 @@ func (m MenuItemRespository) InsertMenuItem(menuItems []model.MenuItem) error {
 
 func (m *MenuItemRespository) GetAllMenusItem() ([]*model.MenuItem, error) {
 	//prepare the query
-	query := `SELECT id, name, price, image, type, ingredients, supplier_id FROM menu_items`
+	query := `SELECT external_id, name, price, image, type, ingredients, supplier_id FROM menu_items`
 	stmt, err := m.db.Prepare(query)
 	if err != nil {
 		return nil, fmt.Errorf("error preparing statment: %v", err)

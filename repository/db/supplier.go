@@ -91,7 +91,7 @@ func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
 
 func (r *SupplierDbRepository) DoesSupplierExist(id int) (bool, error) {
 	var exists bool
-	query := `SELECT EXISTS(SELECT 1 FROM suppliers WHERE id = $1)`
+	query := `SELECT EXISTS(SELECT 1 FROM suppliers WHERE external_id = $1)`
 
 	// Execute query to check if the supplier exists
 	err := r.db.QueryRow(query, id).Scan(&exists)
@@ -101,46 +101,6 @@ func (r *SupplierDbRepository) DoesSupplierExist(id int) (bool, error) {
 
 	return exists, nil
 }
-
-// // GetSupplierById fetches a supplier from the database by its ID and returns it.
-// func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) {
-// 	// Check if the supplier exists
-// 	exists, err := r.DoesSupplierExist(id)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error checking supplier: %v", err)
-// 	}
-// 	if !exists {
-// 		return nil, fmt.Errorf("supplier by ID %d does not exist: %v", id, err)
-// 	}
-
-// 	//prepare the sql query
-// 	stmt, err := r.db.Prepare(`SELECT external_id, name, type, image, opening_time, closing_time FROM suppliers  WHERE external_id =$1`)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error in preparing db statment: %v", err)
-// 	}
-// 	defer stmt.Close()
-
-// 	var supplier model.Supplier
-// 	var openingTime, closingTime string
-
-// 	err = stmt.QueryRow(id).Scan(&supplier.Id, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			return nil, fmt.Errorf("no supplier found with id: %d", id)
-// 		}
-// 		return nil, fmt.Errorf("error in scanning row: %v", err)
-// 	}
-
-// 	// Set the working hours in the Supplier struct
-// 	supplier.WorkingHours = model.WorkingHours{
-// 		Opening: openingTime,
-// 		Closing: closingTime,
-// 	}
-
-// 	log.Printf("Get a supliers by id: %d, supplier: %v", id, supplier)
-
-// 	return &supplier, nil
-// }
 
 func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) {
 	// Log and check if the supplier exists

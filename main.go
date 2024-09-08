@@ -38,7 +38,7 @@ func main() {
 
 	//menuService.PriceUpdater()
 
-	//supplierService.SupplierUpdater()
+	supplierService.SupplierUpdater()
 
 	//create a new servemux
 	mux := http.NewServeMux()
