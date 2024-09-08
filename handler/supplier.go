@@ -40,7 +40,7 @@ func GetSupplierByIdHandler(supplierService *service.SupplierService) http.Handl
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get the id from Url path
 		id, err := strconv.Atoi(r.PathValue("id"))
-		if err != nil || id < 0 {
+		if err != nil || id < 1 {
 			http.Error(w, "Invalid ID", http.StatusBadRequest)
 			return
 		}

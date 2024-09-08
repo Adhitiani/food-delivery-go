@@ -19,13 +19,14 @@ func NewSupplierDbRepository(db *sql.DB) *SupplierDbRepository {
 
 func (r *SupplierDbRepository) InsertSuppliers(suppliers []model.Supplier) error {
 	// prepare the sql query
-	stmt, err := r.db.Prepare(`
+	query := `
 		INSERT INTO suppliers (external_id, name, type, image, opening_time, closing_time)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (external_id) DO UPDATE 
 		SET external_id = EXCLUDED.external_id, name = EXCLUDED.name, type = EXCLUDED.type, image = EXCLUDED.image, 
 		    opening_time = EXCLUDED.opening_time, closing_time = EXCLUDED.closing_time
-	`)
+	`
+	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		return fmt.Errorf("error preparing statement: %v", err)
 	}
@@ -33,6 +34,13 @@ func (r *SupplierDbRepository) InsertSuppliers(suppliers []model.Supplier) error
 	defer stmt.Close()
 
 	for _, supplier := range suppliers {
+		// //log.Printf("Processing supplier: %+v", supplier)
+		// // Skip suppliers with invalid external_id (e.g., 0)
+		// if supplier.Id < 1 {
+		// 	log.Printf("Skipping supplier with invalid external_id: %d", supplier.Id)
+		// 	continue
+		// }
+
 		_, err := stmt.Exec(supplier.Id, supplier.Name, supplier.Type, supplier.Image, supplier.WorkingHours.Opening, supplier.WorkingHours.Closing)
 		if err != nil {
 			return fmt.Errorf("error inserting supplier %v %v", supplier.Name, err)
@@ -65,6 +73,12 @@ func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
 		err := rows.Scan(&supplier.Id, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning row: %v", err)
+		}
+
+		// Skip suppliers with invalid external_id
+		if supplier.Id == 0 {
+			log.Printf("Skipping supplier with invalid external_id: %d", supplier.Id)
+			continue
 		}
 
 		// Set the working hours in the supplier struct

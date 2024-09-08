@@ -7,7 +7,7 @@ type WorkingHours struct {
 }
 
 type Supplier struct {
-	Id           int          `json:"external_id"`
+	Id           int          `json:"id" db:"external_id"`
 	Name         string       `json:"name"`
 	Type         string       `json:"type"`
 	Image        string       `json:"image"`
