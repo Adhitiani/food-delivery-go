@@ -1,7 +1,5 @@
 package service
 
-//get only Id from the database
-
 import (
 	"encoding/json"
 	"fmt"
@@ -72,7 +70,7 @@ func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
 
 		// Add supplier ID to each menu item
 		for i := range menuItems.Menu {
-			menuItems.Menu[i].SupplierId = id // Set the SupplierID field
+			menuItems.Menu[i].SupplierId = id
 		}
 
 		allMenusItems = append(allMenusItems, menuItems.Menu...)

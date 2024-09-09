@@ -7,12 +7,10 @@ import (
 	"project/food-delivery/model"
 )
 
-// SupplierDbRepository is a structure that holds a database connection, and this connection will be used to perform database operations.
 type SupplierDbRepository struct {
 	db *sql.DB
 }
 
-// NewSupplierDbRepositry is a constructor function that create a new SupplierDbRepository with a given database connection.
 func NewSupplierDbRepository(db *sql.DB) *SupplierDbRepository {
 	return &SupplierDbRepository{db: db}
 }
@@ -34,13 +32,6 @@ func (r *SupplierDbRepository) InsertSuppliers(suppliers []model.Supplier) error
 	defer stmt.Close()
 
 	for _, supplier := range suppliers {
-		// //log.Printf("Processing supplier: %+v", supplier)
-		// // Skip suppliers with invalid external_id (e.g., 0)
-		// if supplier.Id < 1 {
-		// 	log.Printf("Skipping supplier with invalid external_id: %d", supplier.Id)
-		// 	continue
-		// }
-
 		_, err := stmt.Exec(supplier.Id, supplier.Name, supplier.Type, supplier.Image, supplier.WorkingHours.Opening, supplier.WorkingHours.Closing)
 		if err != nil {
 			return fmt.Errorf("error inserting supplier %v %v", supplier.Name, err)

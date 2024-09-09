@@ -1,7 +1,5 @@
 package util
 
-// contains utility function
-
 import (
 	"crypto/tls"
 	"net/http"
@@ -9,7 +7,6 @@ import (
 
 // Create an HTTP client that skips SSL verification
 func CreateInsecureClient() *http.Client {
-	// Create a custom Transport that disables SSL verification
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}

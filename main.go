@@ -17,6 +17,7 @@ func main() {
 	// go func() {
 	// 	log.Println(http.ListenAndServe("localhost:6060", nil))
 	// }()
+
 	// Set up PostgreSQL connection
 	connStr := "user=food_delivery_user password=password123 dbname=food_delivery sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
@@ -25,8 +26,8 @@ func main() {
 	}
 
 	// Configure connection pooling
-	db.SetMaxOpenConns(10) // Set the maximum number of open connections
-	db.SetMaxIdleConns(5)  // Set the maximum number of idle connections
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
 	defer db.Close()
 
 	supplierRepo := postgres.NewSupplierDbRepository(db)
@@ -36,18 +37,17 @@ func main() {
 	typeRepo := postgres.NewTypeRepository(db)
 	typeService := service.NewTypeRepository(typeRepo)
 
+	//update price and suppliers
 	//menuService.PriceUpdater()
-
 	supplierService.SupplierUpdater()
 
-	//create a new servemux
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /suppliers", handler.GetAllSuppliersHandler(supplierService))
 	mux.HandleFunc("GET /suppliers/{id}", handler.GetSupplierByIdHandler(supplierService))
 	mux.HandleFunc("GET /suppliers/{id}/menus", handler.GetMenuItemBySupplierIdHandler(menuService, supplierService))
 	mux.HandleFunc("GET /types", handler.GetAllTypeHandler(typeService))
 
-	// Wrap the mux with CORS ddleware
+	// CORS middleware
 	handler := util.CorsMiddleware(mux)
 
 	log.Println("Starting server on :8080")

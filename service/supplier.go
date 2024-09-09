@@ -1,7 +1,5 @@
 package service
 
-//The service package usually contains the business logic and manages interactions between the repository layer and external dependencies (like APIs or databases).
-
 import (
 	"encoding/json"
 	"fmt"
@@ -29,8 +27,6 @@ func (s *SupplierService) FetchSuppliers(url string) ([]model.Supplier, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error fetching data: %v", err)
 	}
-
-	//close the connection after all the surroundg function finish
 	defer resp.Body.Close()
 
 	// need to read the body response in order to use unmarshal to convert Json to struct
@@ -39,12 +35,9 @@ func (s *SupplierService) FetchSuppliers(url string) ([]model.Supplier, error) {
 		return nil, fmt.Errorf("error reading body: %v", err)
 	}
 
-	// create  a variable supplierresponse type to store the result of the converted Json
-
 	var result model.SuppliersResponse
 
 	// convert the bytes to SuppliersResponse struct
-
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling data: %v", err)
@@ -80,7 +73,6 @@ func (s *SupplierService) FetchAndInsertSuppliers() error {
 		//append the suppliers from the current iteration to allSuppliers
 		allSuppliers = append(allSuppliers, suppliers...)
 
-		//increment the page for next iteration
 		page++
 	}
 
@@ -101,10 +93,8 @@ func (s *SupplierService) FetchAndInsertSuppliers() error {
 func (s *SupplierService) SupplierUpdater() {
 	go func() {
 		for {
-			// Call the FetchAndInsertSUpplier
-			s.FetchAndInsertSuppliers()
 
-			//Sleep for 10 minutes before running the next update
+			s.FetchAndInsertSuppliers()
 			time.Sleep(10 * time.Minute)
 		}
 
