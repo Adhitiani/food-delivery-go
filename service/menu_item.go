@@ -12,13 +12,13 @@ import (
 )
 
 type MenuItemService struct {
-	repo         repository.MenuItemRepository
+	menuRepo     repository.MenuItemRepository
 	supplierRepo repository.SupplierRepository
 }
 
 func NewMenuItemService(repo repository.MenuItemRepository, supplierRepo repository.SupplierRepository) *MenuItemService {
 	return &MenuItemService{
-		repo:         repo,
+		menuRepo:     repo,
 		supplierRepo: supplierRepo,
 	}
 }
@@ -36,7 +36,7 @@ func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
 	if m.supplierRepo == nil {
 		return nil, fmt.Errorf("supplierRepo is not initialized")
 	}
-	if m.repo == nil {
+	if m.menuRepo == nil {
 		return nil, fmt.Errorf("menuItemRepo is not initialized")
 	}
 
@@ -87,7 +87,7 @@ func (m *MenuItemService) FetchAndInsertMenuItem() error {
 		log.Fatalf("error fetching menuItem: %v", err)
 	}
 
-	err = m.repo.InsertMenuItem(allMenusItems)
+	err = m.menuRepo.InsertMenuItem(allMenusItems)
 	if err != nil {
 		log.Fatalf("error inserting menuItem to database: %v", err)
 	}
@@ -107,5 +107,5 @@ func (m *MenuItemService) PriceUpdater() {
 }
 
 func (m *MenuItemService) GetMenuItemBySupplierId(id int) ([]*model.MenuItem, error) {
-	return m.repo.GetMenuItemBySupplierId(id)
+	return m.menuRepo.GetMenuItemBySupplierId(id)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -39,7 +40,9 @@ func main() {
 
 	//update price and suppliers
 	//menuService.PriceUpdater()
-	supplierService.SupplierUpdater()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go supplierService.SupplierUpdater(ctx)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /suppliers", handler.GetAllSuppliersHandler(supplierService))
