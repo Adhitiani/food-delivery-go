@@ -143,6 +143,32 @@ func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) 
 	return &supplier, nil
 }
 
+func (r *SupplierDbRepository) GetSuppliersIdAndExternalId() ([]model.SupplierIds, error) {
+	rows, err := r.db.Query(`SELECT id, external_id FROM suppliers`)
+	if err != nil {
+		return nil, fmt.Errorf("error executing query: %v", err)
+	}
+
+	defer rows.Close()
+
+	var suppliersIds []model.SupplierIds
+
+	for rows.Next() {
+		Ids := model.SupplierIds{}
+		if err := rows.Scan(&Ids.Id, &Ids.ExternalId); err != nil {
+			log.Printf("Error scanning supplier ID: %v", err)
+			return nil, err
+		}
+		suppliersIds = append(suppliersIds, Ids)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over rows: %v", err)
+	}
+	return suppliersIds, nil
+
+}
+
 func (r *SupplierDbRepository) GetAllSuppliersId() ([]int, error) {
 	rows, err := r.db.Query(`SELECT external_id FROM suppliers`)
 	if err != nil {

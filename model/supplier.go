@@ -17,3 +17,8 @@ type Supplier struct {
 type SuppliersResponse struct {
 	Suppliers []Supplier
 }
+
+type SupplierIds struct {
+	Id         int `json:"id"`
+	ExternalId int `json:"external_id"`
+}

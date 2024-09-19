@@ -24,13 +24,6 @@ func NewMenuItemService(repo repository.MenuItemRepository, supplierRepo reposit
 }
 
 func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
-	//bypass the tls security
-	//get all the suppliers Id
-	// iterate over the suppliers id
-	// in each iteration pass in the current id to the menu url
-	// fetch the data from the menu
-	// store it in responseMenu type
-	// append it in the responseAllmenu a slice of menu
 
 	client := util.CreateInsecureClient()
 	if m.supplierRepo == nil {
@@ -40,14 +33,14 @@ func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
 		return nil, fmt.Errorf("menuItemRepo is not initialized")
 	}
 
-	Ids, err := m.supplierRepo.GetAllSuppliersId()
+	Ids, err := m.supplierRepo.GetSuppliersIdAndExternalId()
 	if err != nil {
 		return nil, fmt.Errorf("error get all supplier id: %v", err)
 	}
 
 	var allMenusItems []model.MenuItem
-	for _, id := range Ids {
-		url := fmt.Sprintf("https://foodapi.golang.nixdev.co/suppliers/%d/menu", id)
+	for _, supplier := range Ids {
+		url := fmt.Sprintf("https://foodapi.golang.nixdev.co/suppliers/%d/menu", supplier.ExternalId)
 
 		resp, err := client.Get(url)
 		if err != nil {
@@ -70,7 +63,7 @@ func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
 
 		// Add supplier ID to each menu item
 		for i := range menuItems.Menu {
-			menuItems.Menu[i].SupplierId = id
+			menuItems.Menu[i].SupplierId = supplier.Id
 		}
 
 		allMenusItems = append(allMenusItems, menuItems.Menu...)
