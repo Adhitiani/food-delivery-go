@@ -68,9 +68,8 @@ func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
 
 	for rows.Next() {
 		supplier := &model.Supplier{}
-		var openingTime, closingTime string
 
-		err := rows.Scan(&supplier.Id, &supplier.ExternalId, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
+		err := rows.Scan(&supplier.Id, &supplier.ExternalId, &supplier.Name, &supplier.Type, &supplier.Image, &supplier.OpeningTime, &supplier.ClosingTime)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning row: %v", err)
 		}
@@ -126,10 +125,9 @@ func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) 
 `
 
 	supplier := &model.Supplier{}
-	var openingTime, closingTime string
 
 	err = r.db.QueryRow(query, id).Scan(
-		&supplier.Id, &supplier.ExternalId, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
+		&supplier.Id, &supplier.ExternalId, &supplier.Name, &supplier.Type, &supplier.Image, &supplier.OpeningTime, &supplier.ClosingTime)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("no supplier found with id: %d", id)
@@ -195,7 +193,7 @@ func (r *SupplierDbRepository) GetAllSuppliersId() ([]int, error) {
 
 func (r *SupplierDbRepository) GetSupplierByMenuType(menuType string) ([]*model.Supplier, error) {
 	query := `
-        SELECT s.id, s.external_id, s.name, s.type, s.image, s.opening_time, s.closing_time
+        SELECT  DISTINCT s.id, s.external_id, s.name, s.type, s.image, s.opening_time, s.closing_time
         FROM suppliers s
         JOIN menu_items mi ON s.id = mi.supplier_id
         JOIN menu_types mt ON mi.menu_type_id = mt.id
@@ -210,9 +208,8 @@ func (r *SupplierDbRepository) GetSupplierByMenuType(menuType string) ([]*model.
 	var suppliers []*model.Supplier
 	for rows.Next() {
 		supplier := &model.Supplier{}
-		var openingTime, closingTime string
 
-		if err := rows.Scan(&supplier.Id, &supplier.ExternalId, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime); err != nil {
+		if err := rows.Scan(&supplier.Id, &supplier.ExternalId, &supplier.Name, &supplier.Type, &supplier.Image, &supplier.OpeningTime, &supplier.ClosingTime); err != nil {
 			return nil, err
 		}
 
@@ -221,4 +218,29 @@ func (r *SupplierDbRepository) GetSupplierByMenuType(menuType string) ([]*model.
 
 	return suppliers, nil
 
+}
+
+func (r *SupplierDbRepository) GetSupplierCategories(supplierId int) ([]*model.Type, error) {
+	//Prepare query
+	query := `SELECT DISTINCT menu_types.id, menu_types.name  FROM menu_types
+JOIN menu_items ON menu_items.menu_type_id = menu_types.id
+JOIN suppliers ON menu_items.supplier_id = suppliers.id
+WHERE suppliers.id = $1`
+
+	rows, err := r.db.Query(query, supplierId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := []*model.Type{}
+	for rows.Next() {
+		category := &model.Type{}
+
+		if err := rows.Scan(&category.Id, &category.Name); err != nil {
+			return nil, err
+		}
+		categories = append(categories, category)
+	}
+	return categories, nil
 }

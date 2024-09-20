@@ -102,3 +102,33 @@ func GetSupplierByMenuType(supplierService *service.SupplierService) http.Handle
 		}
 	}
 }
+
+func GetSupplierCategoriesHandler(supplierService *service.SupplierService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		id, err := strconv.Atoi(r.PathValue("id"))
+		if err != nil || id < 1 {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
+
+		categories, err := supplierService.GetSupplierCategories(id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error get suppliers categories by id: %d, %v", id, err), http.StatusInternalServerError)
+			return
+		}
+
+		jsonData, err := json.Marshal(categories)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error marshalling supplier to JSON: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_, err = w.Write(jsonData)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error writing JSON response: %v", err), http.StatusInternalServerError)
+			return
+		}
+	}
+}

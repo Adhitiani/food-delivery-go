@@ -307,3 +307,6 @@ func (s *SupplierService) DoesSupplierExist(id int) (bool, error) {
 func (s *SupplierService) GetSupplierByMenuType(menuType string) ([]*model.Supplier, error) {
 	return s.repo.GetSupplierByMenuType(menuType)
 }
+func (s *SupplierService) GetSupplierCategories(supplierId int) ([]*model.Type, error) {
+	return s.repo.GetSupplierCategories(supplierId)
+}
