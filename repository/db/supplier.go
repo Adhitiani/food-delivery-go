@@ -118,12 +118,15 @@ func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) 
 		return nil, fmt.Errorf("supplier by ID %d does not exist", id)
 	}
 
-	// Directly use QueryRow without Prepare
-	var supplier model.Supplier
+	query := `
+				SELECT id, external_id, name, type, image, opening_time, closing_time FROM suppliers WHERE id = $1
+`
+
+	supplier := &model.Supplier{}
 	var openingTime, closingTime string
 
-	err = r.db.QueryRow(`SELECT id, name, type, image, opening_time, closing_time FROM suppliers WHERE id = $1`, id).Scan(
-		&supplier.Id, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
+	err = r.db.QueryRow(query, id).Scan(
+		&supplier.Id, &supplier.ExternalId, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("no supplier found with id: %d", id)
@@ -140,7 +143,7 @@ func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) 
 	// Log the supplier after fetching
 	log.Printf("Get a supplier by ID: %d, supplier: %v", id, supplier)
 
-	return &supplier, nil
+	return supplier, nil
 }
 
 func (r *SupplierDbRepository) GetSuppliersIdAndExternalId() ([]model.SupplierIds, error) {
