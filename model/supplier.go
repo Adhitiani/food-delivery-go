@@ -7,11 +7,12 @@ type WorkingHours struct {
 }
 
 type Supplier struct {
-	Id           int          `json:"id" db:"external_id"`
+	Id           int          `json:"id" db:"id"`                   // Internal DB ID (not exposed)
+	ExternalId   int          `json:"external_id" db:"external_id"` // External ID from API (mapped to "id" in API response)
 	Name         string       `json:"name"`
 	Type         string       `json:"type"`
 	Image        string       `json:"image"`
-	WorkingHours WorkingHours `json:"workinghours"`
+	WorkingHours WorkingHours `json:"workingHours"`
 }
 
 type SuppliersResponse struct {

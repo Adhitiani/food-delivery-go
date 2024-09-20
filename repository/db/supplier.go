@@ -19,10 +19,10 @@ func (r *SupplierDbRepository) InsertSuppliers(suppliers []model.Supplier) error
 	// prepare the sql query
 	query := `
 		INSERT INTO suppliers (external_id, name, type, image, opening_time, closing_time)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (external_id) DO UPDATE 
-		SET external_id = EXCLUDED.external_id, name = EXCLUDED.name, type = EXCLUDED.type, image = EXCLUDED.image, 
-		    opening_time = EXCLUDED.opening_time, closing_time = EXCLUDED.closing_time
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (external_id) 
+        DO UPDATE SET name = EXCLUDED.name, type = EXCLUDED.type, image = EXCLUDED.image,
+                      opening_time = EXCLUDED.opening_time, closing_time = EXCLUDED.closing_time;
 	`
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
@@ -32,7 +32,7 @@ func (r *SupplierDbRepository) InsertSuppliers(suppliers []model.Supplier) error
 	defer stmt.Close()
 
 	for _, supplier := range suppliers {
-		_, err := stmt.Exec(supplier.Id, supplier.Name, supplier.Type, supplier.Image, supplier.WorkingHours.Opening, supplier.WorkingHours.Closing)
+		_, err := stmt.Exec(supplier.ExternalId, supplier.Name, supplier.Type, supplier.Image, supplier.WorkingHours.Opening, supplier.WorkingHours.Closing)
 		if err != nil {
 			return fmt.Errorf("error inserting supplier %v %v", supplier.Name, err)
 		}
@@ -41,7 +41,7 @@ func (r *SupplierDbRepository) InsertSuppliers(suppliers []model.Supplier) error
 }
 
 func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
-	stmt, err := r.db.Prepare(`SELECT external_id, name, type, image, opening_time, closing_time FROM suppliers ORDER BY external_id`)
+	stmt, err := r.db.Prepare(`SELECT id, name, type, image, opening_time, closing_time FROM suppliers ORDER BY id`)
 	if err != nil {
 		return nil, fmt.Errorf("error preparing statement: %v", err)
 	}
@@ -96,7 +96,7 @@ func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
 
 func (r *SupplierDbRepository) DoesSupplierExist(id int) (bool, error) {
 	var exists bool
-	query := `SELECT EXISTS(SELECT 1 FROM suppliers WHERE external_id = $1)`
+	query := `SELECT EXISTS(SELECT 1 FROM suppliers WHERE id = $1)`
 
 	// Execute query to check if the supplier exists
 	err := r.db.QueryRow(query, id).Scan(&exists)
@@ -122,7 +122,7 @@ func (r *SupplierDbRepository) GetSupplierById(id int) (*model.Supplier, error) 
 	var supplier model.Supplier
 	var openingTime, closingTime string
 
-	err = r.db.QueryRow(`SELECT external_id, name, type, image, opening_time, closing_time FROM suppliers WHERE external_id = $1`, id).Scan(
+	err = r.db.QueryRow(`SELECT id, name, type, image, opening_time, closing_time FROM suppliers WHERE id = $1`, id).Scan(
 		&supplier.Id, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -191,4 +191,39 @@ func (r *SupplierDbRepository) GetAllSuppliersId() ([]int, error) {
 	}
 
 	return suppliersId, nil
+}
+
+func (r *SupplierDbRepository) GetSupplierByMenuType(menuType string) ([]*model.Supplier, error) {
+	query := `
+        SELECT s.id, s.external_id, s.name, s.type, s.image, s.opening_time, s.closing_time
+        FROM suppliers s
+        JOIN menu_items mi ON s.id = mi.supplier_id
+        JOIN menu_types mt ON mi.menu_type_id = mt.id
+        WHERE mt.name = $1;
+    `
+	rows, err := r.db.Query(query, menuType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var suppliers []*model.Supplier
+	for rows.Next() {
+		supplier := &model.Supplier{}
+		var openingTime, closingTime string
+
+		if err := rows.Scan(&supplier.Id, &supplier.ExternalId, &supplier.Name, &supplier.Type, &supplier.Image, &openingTime, &closingTime); err != nil {
+			return nil, err
+		}
+
+		supplier.WorkingHours = model.WorkingHours{
+			Opening: openingTime,
+			Closing: closingTime,
+		}
+
+		suppliers = append(suppliers, supplier)
+	}
+
+	return suppliers, nil
+
 }

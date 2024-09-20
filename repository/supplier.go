@@ -11,4 +11,5 @@ type SupplierRepository interface {
 	DoesSupplierExist(id int) (bool, error)
 	GetAllSuppliersId() ([]int, error)
 	GetSuppliersIdAndExternalId() ([]model.SupplierIds, error)
+	GetSupplierByMenuType(menuType string) ([]*model.Supplier, error)
 }

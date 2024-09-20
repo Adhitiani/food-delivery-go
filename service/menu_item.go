@@ -80,7 +80,7 @@ func (m *MenuItemService) FetchAndInsertMenuItem() error {
 		log.Fatalf("error fetching menuItem: %v", err)
 	}
 
-	err = m.menuRepo.InsertMenuItem(allMenusItems)
+	err = m.menuRepo.InsertMenuItems(allMenusItems)
 	if err != nil {
 		log.Fatalf("error inserting menuItem to database: %v", err)
 	}

@@ -3,9 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"project/food-delivery/service"
 	"strconv"
+	"strings"
 )
 
 func GetAllSuppliersHandler(supplierService *service.SupplierService) http.HandlerFunc {
@@ -67,4 +69,36 @@ func GetSupplierByIdHandler(supplierService *service.SupplierService) http.Handl
 		}
 	}
 
+}
+
+func GetSupplierByMenuType(supplierService *service.SupplierService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		menuType := strings.ToLower(r.PathValue("category"))
+		menuExist := true //DoesMenuTypeExist(menuType)
+		if !menuExist {
+			http.Error(w, "Invalid Category", http.StatusBadRequest)
+			return
+		}
+
+		suppliers, err := supplierService.GetSupplierByMenuType(menuType)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error get suppliers by category: %s, %v", menuType, err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-type", "application/json")
+		jsonData, err := json.Marshal(suppliers)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error marshalling suppliers to JSON: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		log.Printf("Get suppliers by category: %s", string(jsonData))
+
+		_, err = w.Write(jsonData)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error writing JSON response: %v", err), http.StatusInternalServerError)
+			return
+		}
+	}
 }

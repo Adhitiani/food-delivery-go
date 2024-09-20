@@ -39,7 +39,7 @@ func main() {
 	typeService := service.NewTypeRepository(typeRepo)
 
 	//update price and suppliers
-	//menuService.PriceUpdater()
+	menuService.PriceUpdater()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go supplierService.SupplierUpdater(ctx)
@@ -49,6 +49,7 @@ func main() {
 	mux.HandleFunc("GET /suppliers/{id}", handler.GetSupplierByIdHandler(supplierService))
 	mux.HandleFunc("GET /suppliers/{id}/menus", handler.GetMenuItemBySupplierIdHandler(menuService, supplierService))
 	mux.HandleFunc("GET /types", handler.GetAllTypeHandler(typeService))
+	mux.HandleFunc("GET /menus/suppliers/{category}", handler.GetSupplierByMenuType(supplierService))
 
 	// CORS middleware
 	handler := util.CorsMiddleware(mux)

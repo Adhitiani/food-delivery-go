@@ -13,7 +13,7 @@ func GetMenuItemBySupplierIdHandler(menuItemService *service.MenuItemService, su
 	return func(w http.ResponseWriter, r *http.Request) {
 		//extrac the id from url
 		id, err := strconv.Atoi(r.PathValue("id"))
-		//log.Printf("id %d", id)
+		log.Printf("id %d", id)
 
 		if err != nil || id < 1 {
 			http.Error(w, "Invalid ID", http.StatusBadRequest)
@@ -37,6 +37,7 @@ func GetMenuItemBySupplierIdHandler(menuItemService *service.MenuItemService, su
 			http.Error(w, "Failed to fetch menu items", http.StatusInternalServerError)
 			return
 		}
+		log.Printf("menuItems %v", menuItems)
 
 		// Handle case where no menu items are found
 		if len(menuItems) == 0 {

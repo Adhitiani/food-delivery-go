@@ -22,7 +22,7 @@ func (t *TypeRepository) GetAllType() ([]*model.Type, error) {
 	// push the scan result to Types variable
 	// return the type variables
 
-	query := `SELECT id, name FROM types ORDER BY name`
+	query := `SELECT id, name FROM menu_types ORDER BY name`
 
 	stmt, err := t.db.Prepare(query)
 	if err != nil {
@@ -54,4 +54,23 @@ func (t *TypeRepository) GetAllType() ([]*model.Type, error) {
 
 	return types, nil
 
+}
+
+func (r *TypeRepository) GetOrInsertMenuType(menuType string) (int, error) {
+	var menuTypeId int
+	// First, check if the menu type already exists
+	query := `SELECT id FROM menu_types WHERE name = $1`
+	err := r.db.QueryRow(query, menuType).Scan(&menuTypeId)
+	if err == sql.ErrNoRows {
+		// If the menu type does not exist, insert it
+		insertQuery := `INSERT INTO menu_types (name) VALUES ($1) RETURNING id`
+		err = r.db.QueryRow(insertQuery, menuType).Scan(&menuTypeId)
+		if err != nil {
+			return 0, fmt.Errorf("failed to insert menu type: %v", err)
+		}
+	} else if err != nil {
+		return 0, fmt.Errorf("failed to get menu type: %v", err)
+	}
+
+	return menuTypeId, nil
 }
