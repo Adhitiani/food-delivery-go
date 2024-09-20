@@ -46,10 +46,27 @@ func (s *SupplierService) FetchSuppliers(url string) ([]model.Supplier, error) {
 		return nil, fmt.Errorf("error unmarshaling data: %v", err)
 	}
 
+	var suppliers []model.Supplier
+	for _, apiSupplier := range result.Suppliers {
+		supplier := s.mapApiSupplierToSupplier(apiSupplier)
+		suppliers = append(suppliers, supplier)
+	}
+
 	// return the Suppliers field from the result struct
 
-	return result.Suppliers, nil
+	return suppliers, nil
 
+}
+
+func (s *SupplierService) mapApiSupplierToSupplier(apiSupplier model.ApiSupplier) model.Supplier {
+	return model.Supplier{
+		ExternalId:  apiSupplier.Id,
+		Name:        apiSupplier.Name,
+		Type:        apiSupplier.Type,
+		Image:       apiSupplier.Image,
+		OpeningTime: apiSupplier.WorkingHours.Opening,
+		ClosingTime: apiSupplier.WorkingHours.Closing,
+	}
 }
 
 // func (s *SupplierService) FetchAndInsertSuppliers() error {

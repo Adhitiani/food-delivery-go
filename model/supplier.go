@@ -6,17 +6,26 @@ type WorkingHours struct {
 	Closing string `json:"closing"`
 }
 
-type Supplier struct {
-	Id           int          `json:"id" db:"id"`                   // Internal DB ID (not exposed)
-	ExternalId   int          `json:"external_id" db:"external_id"` // External ID from API (mapped to "id" in API response)
+type ApiSupplier struct {
+	Id           int          `json:"id"` // External ID from API
 	Name         string       `json:"name"`
 	Type         string       `json:"type"`
 	Image        string       `json:"image"`
 	WorkingHours WorkingHours `json:"workingHours"`
 }
 
+type Supplier struct {
+	Id          int    `json:"id" db:"id"`                   // Internal DB ID (not exposed)
+	ExternalId  int    `json:"external_id" db:"external_id"` // External ID from API
+	Name        string `json:"name" db:"name"`
+	Type        string `json:"type" db:"type"`
+	Image       string `json:"image" db:"image"`
+	OpeningTime string `json:"opening_time" db:"opening_time"` // Mapped from WorkingHours
+	ClosingTime string `json:"closing_time" db:"closing_time"` // Mapped from WorkingHours
+}
+
 type SuppliersResponse struct {
-	Suppliers []Supplier
+	Suppliers []ApiSupplier
 }
 
 type SupplierIds struct {
