@@ -37,6 +37,8 @@ func main() {
 	menuService := service.NewMenuItemService(menuRepo, supplierRepo)
 	typeRepo := postgres.NewTypeRepository(db)
 	typeService := service.NewTypeRepository(typeRepo)
+	orderRepo := postgres.NewOrderRepository(db)
+	orderService := service.NewOrderService(orderRepo)
 
 	//update price and suppliers
 	menuService.PriceUpdater()
@@ -51,6 +53,7 @@ func main() {
 	mux.HandleFunc("GET /suppliers/{id}/categories", handler.GetSupplierCategoriesHandler(supplierService))
 	mux.HandleFunc("GET /categories", handler.GetAllTypeHandler(typeService))
 	mux.HandleFunc("GET /categories/suppliers/{category}", handler.GetSupplierByMenuType(supplierService))
+	mux.HandleFunc("POST /order", handler.CreateOrder(orderService))
 
 	// CORS middleware
 	handler := util.CorsMiddleware(mux)
