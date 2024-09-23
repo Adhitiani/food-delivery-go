@@ -49,10 +49,10 @@ func (o *OrderRepository) CreateOrder(order model.Order) error {
 	return nil
 }
 
-func (o *OrderRepository) GetOrderDetails(orderID int) (*model.Order, error) {
+func (o *OrderRepository) GetOrderDetailsById(orderID int) (*model.Order, error) {
 	var order model.Order
 	err := o.db.QueryRow(`
-    SELECT o.id, o.total_price, o.address, o.phone, o.payment_method, o.created_at, s.name 
+    SELECT o.id, o.total_price, o.address, o.phone, o.payment_method, TO_CHAR(o.created_at,'YYYY-MM-DD HH24:MI:SS') as created_at , s.name 
     FROM orders o
     JOIN suppliers s ON o.supplier_id = s.id
     WHERE o.id = $1`, orderID).Scan(
@@ -76,7 +76,7 @@ func (o *OrderRepository) GetOrderDetails(orderID int) (*model.Order, error) {
 
 	for rows.Next() {
 		var item model.OrderItem
-		err := rows.Scan(&item.OrderID, &item.MenuItemID, &item.Quantity, &item.Price, &item.MenuItemName)
+		err := rows.Scan(&item.Quantity, &item.Price, &item.MenuItemName)
 		if err != nil {
 			return nil, fmt.Errorf("error: failed to scan order items %v", err)
 		}

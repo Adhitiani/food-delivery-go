@@ -17,6 +17,6 @@ func (o *OrderService) CreateOrder(order model.Order) error {
 	return o.repo.CreateOrder(order)
 }
 
-func (o *OrderService) GetOrderDetails(orderID int) (*model.Order, error) {
-	return o.repo.GetOrderDetails(orderID)
+func (o *OrderService) GetOrderDetailsById(orderID int) (*model.Order, error) {
+	return o.repo.GetOrderDetailsById(orderID)
 }

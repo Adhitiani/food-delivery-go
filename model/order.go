@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 type Order struct {
 	ID            int         `json:"id"`
 	UserID        int         `json:"user_id"`       // User ID for the order
@@ -11,7 +9,7 @@ type Order struct {
 	Address       string      `json:"address"`
 	Phone         string      `json:"phone"`
 	PaymentMethod string      `json:"payment_method"`
-	CreatedAt     time.Time   `json:"created_at"`
+	CreatedAt     string      `json:"created_at"`
 	Items         []OrderItem `json:"items"` // List of order items
 }
 

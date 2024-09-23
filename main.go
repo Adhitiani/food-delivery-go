@@ -54,6 +54,7 @@ func main() {
 	mux.HandleFunc("GET /categories", handler.GetAllTypeHandler(typeService))
 	mux.HandleFunc("GET /categories/suppliers/{category}", handler.GetSupplierByMenuType(supplierService))
 	mux.HandleFunc("POST /order", handler.CreateOrder(orderService))
+	mux.HandleFunc("GET /order/{id}", handler.GetOrderDetailsById(orderService))
 
 	// CORS middleware
 	handler := util.CorsMiddleware(mux)
