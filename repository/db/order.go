@@ -25,34 +25,38 @@ func (o *OrderRepository) CreateOrder(order model.Order) (int, error) {
 
 	// Insert the main order and get the generated order ID
 	err = tx.QueryRow(
-		`INSERT INTO orders (user_id, supplier_id, total_price, address, phone, payment_method, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-		order.UserID, order.SupplierID, order.TotalPrice, order.Address, order.Phone, order.PaymentMethod, time.Now()).Scan(&orderID)
+		`INSERT INTO orders (user_id, supplier_id, total_price, address, phone, payment_method, created_at) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+		order.UserID, order.SupplierID, order.TotalPrice, order.Address, order.Phone, order.PaymentMethod, time.Now(),
+	).Scan(&orderID)
+
 	if err != nil {
 		tx.Rollback()
-		return 0, fmt.Errorf("error inserting order %v", err)
+		return 0, fmt.Errorf("error inserting order: %v", err)
 	}
 
+	fmt.Printf("Successfully created order with id %d\n", orderID)
+
 	fmt.Printf("trying to insert items %v\n", order.Items)
+
 	// Insert each order item
 	for _, item := range order.Items {
-		fmt.Printf("trying to insert item %v\n", item)
+		var itemID int
+		fmt.Printf("Trying to insert item: %+v\n", item)
 
-		// Create OrderItem from the incoming item
-		orderItem := model.OrderItem{
-			OrderID:    orderID,         // Set the current order ID
-			MenuItemID: item.MenuItemID, // Ensure you're using the correct field
-			Quantity:   item.Quantity,
-			Price:      item.Price,
-		}
+		// Insert the order item and get the generated order item ID
+		err = tx.QueryRow(
+			`INSERT INTO order_items (order_id, menu_item_id, quantity, price) 
+			VALUES ($1, $2, $3, $4) RETURNING id`,
+			orderID, item.MenuItemID, item.Quantity, item.Price,
+		).Scan(&itemID)
 
-		// Use MenuItemName when inserting into the database (if needed)
-		_, err = tx.Exec(
-			`INSERT INTO order_items (order_id, menu_item_id, quantity, price) VALUES ($1, $2, $3, $4)`,
-			orderItem.OrderID, orderItem.MenuItemID, orderItem.Quantity, orderItem.Price)
 		if err != nil {
 			tx.Rollback()
-			return 0, fmt.Errorf("error to insert order item %v", err)
+			return 0, fmt.Errorf("error inserting order item: %v", err)
 		}
+
+		fmt.Printf("Successfully inserted order item with id %d\n", itemID)
 	}
 
 	// Commit the transaction
@@ -68,19 +72,20 @@ func (o *OrderRepository) CreateOrder(order model.Order) (int, error) {
 func (o *OrderRepository) GetOrderDetailsById(orderID int) (*model.Order, error) {
 	var order model.Order
 	err := o.db.QueryRow(`
-    SELECT o.id, o.total_price, o.address, o.phone, o.payment_method, TO_CHAR(o.created_at,'YYYY-MM-DD HH24:MI:SS') as created_at , s.name 
+    SELECT o.id, o.total_price, o.address, o.phone, o.payment_method, TO_CHAR(o.created_at,'YYYY-MM-DD HH24:MI:SS') as created_at, s.name, s.id 
     FROM orders o
     JOIN suppliers s ON o.supplier_id = s.id
     WHERE o.id = $1`, orderID).Scan(
-		&order.ID, &order.TotalPrice, &order.Address, &order.Phone, &order.PaymentMethod, &order.CreatedAt, &order.SupplierName,
+		&order.ID, &order.TotalPrice, &order.Address, &order.Phone, &order.PaymentMethod, &order.CreatedAt, &order.SupplierName, &order.SupplierID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error order not found %v", err)
 	}
 
+	// Fetch order items
 	rows, err := o.db.Query(`
-	SELECT oi.quantity, oi.price, mi.name 
-	FROM order_items  oi
+	SELECT oi.menu_item_id, oi.quantity, oi.price, mi.name 
+	FROM order_items oi
 	JOIN menu_items mi ON oi.menu_item_id = mi.id
 	WHERE oi.order_id = $1`, orderID)
 	if err != nil {
@@ -92,13 +97,15 @@ func (o *OrderRepository) GetOrderDetailsById(orderID int) (*model.Order, error)
 
 	for rows.Next() {
 		var item model.OrderItem
-		err := rows.Scan(&item.Quantity, &item.Price, &item.MenuItemName)
+		err := rows.Scan(&item.MenuItemID, &item.Quantity, &item.Price, &item.MenuItemName) // Fetching menu_item_id as well
 		if err != nil {
 			return nil, fmt.Errorf("error: failed to scan order items %v", err)
 		}
+		item.OrderID = orderID // Set the OrderID for each item
 		items = append(items, item)
 	}
 
+	// Set the fetched items in the order struct
 	order.Items = items
 
 	return &order, nil
