@@ -3,15 +3,21 @@ package util
 import (
 	"crypto/tls"
 	"net/http"
+	"time"
 )
 
 // Create an HTTP client that skips SSL verification
 func CreateInsecureClient() *http.Client {
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+			MaxIdleConnsPerHost: 10, // Reuse connections
+			IdleConnTimeout:     90 * time.Second,
+		},
+		Timeout: 30 * time.Second, // Add a timeout to prevent hanging requests
 	}
-
-	return &http.Client{Transport: transport}
 }
 
 // Middleware to handle CORS

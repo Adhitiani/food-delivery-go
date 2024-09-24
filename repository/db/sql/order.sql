@@ -9,8 +9,6 @@ CREATE TABLE orders (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-GRANT ALL PRIVILEGES ON TABLE menu_types TO food_delivery_user;
-GRANT ALL PRIVILEGES ON TABLE suppliers TO food_delivery_user;
 
 CREATE TABLE order_items (
   id SERIAL PRIMARY KEY,

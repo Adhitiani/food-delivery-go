@@ -21,15 +21,20 @@ func CreateOrder(orderService *service.OrderService) http.HandlerFunc {
 		}
 
 		//call the service to create order
-		err = orderService.CreateOrder(order)
+		orderId, err := orderService.CreateOrder(order)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error creating order %v", err), http.StatusInternalServerError)
 			return
 		}
 
+		response := map[string]interface{}{
+			"message": "Order created successfully",
+			"orderId": orderId,
+		}
+
 		w.Header().Set("Content_Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode("Order created successfully")
+		json.NewEncoder(w).Encode(response)
 	}
 }
 

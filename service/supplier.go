@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"project/food-delivery/repository"
 	"project/food-delivery/util"
 	"project/food-delivery/util/pool"
+	"syscall"
 	"time"
 )
 
@@ -23,39 +25,51 @@ func NewSupplierService(repo repository.SupplierRepository) *SupplierService {
 }
 
 func (s *SupplierService) FetchSuppliers(url string) ([]model.Supplier, error) {
-	//bypass the tls security
+	// Bypass the TLS security
 	client := util.CreateInsecureClient()
 
-	resp, err := client.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching data: %v", err)
+	// Retry mechanism with memory error handling
+	for retry := 0; retry < 3; retry++ {
+		resp, err := client.Get(url)
+		if err != nil {
+			if errors.Is(err, syscall.ENOMEM) {
+				log.Printf("Memory error: %v, retrying after a pause...", err)
+				time.Sleep(5 * time.Second) // Pause before retrying
+				continue
+			}
+			return nil, fmt.Errorf("error fetching data: %v", err)
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			if errors.Is(err, syscall.ENOMEM) {
+				log.Printf("Memory error reading body: %v, retrying after a pause...", err)
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			return nil, fmt.Errorf("error reading body: %v", err)
+		}
+
+		var result model.SuppliersResponse
+
+		// Convert the bytes to SuppliersResponse struct
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshaling data: %v", err)
+		}
+
+		var suppliers []model.Supplier
+		for _, apiSupplier := range result.Suppliers {
+			supplier := s.mapApiSupplierToSupplier(apiSupplier)
+			suppliers = append(suppliers, supplier)
+		}
+
+		// Return the suppliers field from the result struct
+		return suppliers, nil
 	}
-	defer resp.Body.Close()
 
-	// need to read the body response in order to use unmarshal to convert Json to struct
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading body: %v", err)
-	}
-
-	var result model.SuppliersResponse
-
-	// convert the bytes to SuppliersResponse struct
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshaling data: %v", err)
-	}
-
-	var suppliers []model.Supplier
-	for _, apiSupplier := range result.Suppliers {
-		supplier := s.mapApiSupplierToSupplier(apiSupplier)
-		suppliers = append(suppliers, supplier)
-	}
-
-	// return the Suppliers field from the result struct
-
-	return suppliers, nil
-
+	return nil, fmt.Errorf("failed to fetch suppliers after retries")
 }
 
 func (s *SupplierService) mapApiSupplierToSupplier(apiSupplier model.ApiSupplier) model.Supplier {
@@ -310,3 +324,8 @@ func (s *SupplierService) GetSupplierByMenuType(menuType string) ([]*model.Suppl
 func (s *SupplierService) GetSupplierCategories(supplierId int) ([]*model.Type, error) {
 	return s.repo.GetSupplierCategories(supplierId)
 }
+
+// //Total number of suppliers fetched: 64
+// 2024/09/23 10:02:54 Errors occurred while fetching suppliers: [error fetching page 5: error fetching data: Get "https://foodapi.golang.nixdev.co/suppliers?limit=20&page=5": dial tcp 88.99.80.40:443: connect: cannot allocate memory error fetching page 4: error fetching data: Get "https://foodapi.golang.nixdev.co/suppliers?limit=20&page=4": dial tcp 88.99.80.40:443: connect: cannot allocate memory]
+// 2024/09/23 10:02:54 Time taken: 351.092042ms
+// 2024/09/23 10:02:54 Initial supplier fetch failed: errors occurred while fetching suppliers: [error fetching page 5: error fetching data: Get "https://foodapi.golang.nixdev.co/suppliers?limit=20&page=5": dial tcp 88.99.80.40:443: connect: cannot allocate memory error fetching page 4: error fetching data: Get "https://foodapi.golang.nixdev.co/suppliers?limit=20&page=4": dial tcp 88.99.80.40:443: connect: cannot allocate memory]

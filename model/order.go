@@ -15,8 +15,8 @@ type Order struct {
 
 type OrderItem struct {
 	OrderID      int     `json:"order_id"`
-	MenuItemID   int     `json:"menu_item_id"`
-	MenuItemName string  `json:"menu_item_name"` // New field for the name of the menu item
+	MenuItemID   int     `json:"menu_item_id"` // Ensure this matches the incoming JSON
+	MenuItemName string  `json:"name"`
 	Quantity     int     `json:"quantity"`
 	Price        float64 `json:"price"`
 }

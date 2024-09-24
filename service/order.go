@@ -13,7 +13,7 @@ func NewOrderService(repo repository.OrderRepository) *OrderService {
 	return &OrderService{repo: repo}
 }
 
-func (o *OrderService) CreateOrder(order model.Order) error {
+func (o *OrderService) CreateOrder(order model.Order) (int, error) {
 	return o.repo.CreateOrder(order)
 }
 
