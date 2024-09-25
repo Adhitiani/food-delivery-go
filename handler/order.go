@@ -13,7 +13,7 @@ func CreateOrder(orderService *service.OrderService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var order model.Order
 
-		//Decode the request body to the order struct
+		//Parse the request body to the order struct
 		err := json.NewDecoder(r.Body).Decode(&order)
 		if err != nil {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
