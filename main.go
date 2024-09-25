@@ -58,6 +58,7 @@ func main() {
 	mux.HandleFunc("POST /order", handler.CreateOrder(orderService))
 	mux.HandleFunc("GET /order/{id}", handler.GetOrderDetailsById(orderService))
 	mux.HandleFunc("POST /user/signup", handler.InsertUserHandler(userService))
+	mux.HandleFunc("POST /user/login", handler.LoginHandler(userService))
 
 	// CORS middleware
 	handler := util.CorsMiddleware(mux)

@@ -16,3 +16,11 @@ func NewUserService(repo repository.UserRepository) *UserService {
 func (u *UserService) InsertUser(user model.SignupUser) error {
 	return u.userRepo.InsertUser(user)
 }
+
+func (u *UserService) GetUserByEmail(email string) (*model.User, error) {
+	return u.userRepo.GetUserByEmail(email)
+}
+
+func (u *UserService) GetUserById(userId int) (*model.User, error) {
+	return u.userRepo.GetUserById(userId)
+}

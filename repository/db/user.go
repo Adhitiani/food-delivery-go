@@ -46,3 +46,45 @@ func (u *UserRepository) InsertUser(user model.SignupUser) error {
 	}
 	return nil
 }
+
+func (u *UserRepository) GetUserByEmail(email string) (*model.User, error) {
+	//check the if the email is in the database
+	query := `SELECT id, name, email, hashed_password FROM users WHERE email = $1`
+	stmt, err := u.db.Prepare(query)
+	if err != nil {
+		return nil, fmt.Errorf("error preparing query")
+	}
+	defer stmt.Close()
+
+	user := &model.User{}
+
+	err = stmt.QueryRow(email).Scan(&user.ID, &user.Name, &user.Email, &user.HashedPassword)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, fmt.Errorf("error executing query: %v", err)
+	}
+
+	return user, nil
+}
+
+func (u *UserRepository) GetUserById(userId int) (*model.User, error) {
+	query := `SELECT id, name, email, hashed_password WHERE id = $1`
+	stmt, err := u.db.Prepare(query)
+	if err != nil {
+		return nil, fmt.Errorf("error preparing query")
+	}
+	stmt.Close()
+
+	var user *model.User
+	err = stmt.QueryRow(userId).Scan(&user.ID, &user.Name, &user.Email, &user.HashedPassword)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, fmt.Errorf("error executing query %v", err)
+	}
+
+	return user, nil
+}

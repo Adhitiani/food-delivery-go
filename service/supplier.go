@@ -325,7 +325,6 @@ func (s *SupplierService) GetSupplierCategories(supplierId int) ([]*model.Type, 
 	return s.repo.GetSupplierCategories(supplierId)
 }
 
-// //Total number of suppliers fetched: 64
 // 2024/09/23 10:02:54 Errors occurred while fetching suppliers: [error fetching page 5: error fetching data: Get "https://foodapi.golang.nixdev.co/suppliers?limit=20&page=5": dial tcp 88.99.80.40:443: connect: cannot allocate memory error fetching page 4: error fetching data: Get "https://foodapi.golang.nixdev.co/suppliers?limit=20&page=4": dial tcp 88.99.80.40:443: connect: cannot allocate memory]
 // 2024/09/23 10:02:54 Time taken: 351.092042ms
 // 2024/09/23 10:02:54 Initial supplier fetch failed: errors occurred while fetching suppliers: [error fetching page 5: error fetching data: Get "https://foodapi.golang.nixdev.co/suppliers?limit=20&page=5": dial tcp 88.99.80.40:443: connect: cannot allocate memory error fetching page 4: error fetching data: Get "https://foodapi.golang.nixdev.co/suppliers?limit=20&page=4": dial tcp 88.99.80.40:443: connect: cannot allocate memory]
