@@ -102,7 +102,7 @@ func (h *UserHandler) InsertUserHandler() http.HandlerFunc {
 			Path:     "/",
 		})
 
-		resp := response.LoginResponse{
+		resp := response.TokenResponse{
 			AccessToken: accessString,
 		}
 
@@ -151,7 +151,7 @@ func (h *UserHandler) LoginHandler() http.HandlerFunc {
 			Path:     "/",
 		})
 
-		resp := response.LoginResponse{
+		resp := response.TokenResponse{
 			AccessToken: accessString,
 		}
 
