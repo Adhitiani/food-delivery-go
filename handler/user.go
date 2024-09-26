@@ -7,6 +7,7 @@ import (
 	"project/food-delivery/config"
 	"project/food-delivery/model"
 	"project/food-delivery/request"
+	"project/food-delivery/response"
 	"project/food-delivery/service"
 	"project/food-delivery/util/validator"
 
@@ -97,11 +98,59 @@ func (h *UserHandler) LoginHandler() http.HandlerFunc {
 		if err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(req.Password)); err != nil {
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 			return
+		}
 
+		tokenService := service.NewTokenService(h.cfg)
+		accessString, err := tokenService.GenerateAccessToken(user.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		refreshString, err := tokenService.GenerateRefreshToken((user.ID))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		resp := response.LoginResponse{
+			AccessToken:  accessString,
+			RefreshToken: refreshString,
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(user)
+		json.NewEncoder(w).Encode(resp)
+	}
+
+}
+
+func (h *UserHandler) GetProfile() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenService := service.NewTokenService(h.cfg)
+		claims, err := tokenService.ValidateAccessToken(tokenService.GetTokenFromBearerString(r.Header.Get("Authorization")))
+		if err != nil {
+			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			return
+		}
+
+		log.Printf("claims.ID, %v", claims.ID)
+
+		user, err := h.userService.GetUserById(claims.ID)
+		if err != nil {
+			log.Printf("Error retrieving user: %v", err)
+			http.Error(w, "User does not Exist", http.StatusBadRequest)
+			return
+		}
+
+		resp := response.UserResponse{
+			ID:    user.ID,
+			Name:  user.Name,
+			Email: user.Email,
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(resp)
+
 	}
 
 }

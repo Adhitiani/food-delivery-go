@@ -70,18 +70,18 @@ func (u *UserRepository) GetUserByEmail(email string) (*model.User, error) {
 }
 
 func (u *UserRepository) GetUserById(userId int) (*model.User, error) {
-	query := `SELECT id, name, email, hashed_password WHERE id = $1`
+	query := `SELECT id, name, email FROM users WHERE id = $1`
 	stmt, err := u.db.Prepare(query)
 	if err != nil {
-		return nil, fmt.Errorf("error preparing query")
+		return nil, fmt.Errorf("error preparing query: %v", err)
 	}
-	stmt.Close()
+	defer stmt.Close()
 
-	var user *model.User
-	err = stmt.QueryRow(userId).Scan(&user.ID, &user.Name, &user.Email, &user.HashedPassword)
+	user := &model.User{}
+	err = stmt.QueryRow(userId).Scan(&user.ID, &user.Name, &user.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user not found")
+			return nil, fmt.Errorf("user not found: %v", err)
 		}
 		return nil, fmt.Errorf("error executing query %v", err)
 	}

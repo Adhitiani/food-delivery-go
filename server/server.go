@@ -14,16 +14,15 @@ import (
 
 func Start(cfg *config.Config) {
 	// Set up PostgreSQL connection
-	connStr := "user=food_delivery_user password=password123 dbname=food_delivery sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", cfg.DBConnStr())
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
 	}
 	defer db.Close()
 
 	// Configure connection pooling
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(5)
+	db.SetMaxOpenConns(cfg.DBMaxOpenConns)
+	db.SetMaxIdleConns(cfg.DBMaxIdleConns)
 
 	// Repositories and services initialization
 	supplierRepo := postgres.NewSupplierDbRepository(db)
@@ -58,13 +57,14 @@ func Start(cfg *config.Config) {
 	mux.HandleFunc("GET /order/{id}", handler.GetOrderDetailsById(orderService))
 	mux.HandleFunc("POST /user/login", userHandler.LoginHandler())
 	mux.HandleFunc("POST /user/signup", userHandler.InsertUserHandler())
+	mux.HandleFunc("GET /user/profile", userHandler.GetProfile())
 
 	// CORS middleware
 	handler := util.CorsMiddleware(mux)
 
 	//Start server
-	log.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", handler); err != nil {
+	log.Println("Starting server on", cfg.Port)
+	if err := http.ListenAndServe(cfg.Port, handler); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 
