@@ -44,6 +44,7 @@ func Start(cfg *config.Config) {
 
 	// Pass both userService and cfg to the UserHandler
 	userHandler := handler.NewUserHandler(userService, cfg)
+	authHandler := handler.NewAuthHandler(cfg)
 
 	//Routes
 	mux := http.NewServeMux()
@@ -58,6 +59,7 @@ func Start(cfg *config.Config) {
 	mux.HandleFunc("POST /user/login", userHandler.LoginHandler())
 	mux.HandleFunc("POST /user/signup", userHandler.InsertUserHandler())
 	mux.HandleFunc("GET /user/profile", userHandler.GetProfile())
+	mux.HandleFunc("POST /user/refresh", authHandler.RefreshTokenHandler())
 
 	// CORS middleware
 	handler := util.CorsMiddleware(mux)

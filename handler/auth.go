@@ -19,7 +19,7 @@ func NewAuthHandler(cfg *config.Config) *AuthHandler {
 	}
 }
 
-func (a *AuthHandler) RefreshTokenHandler() http.HandlerFunc {
+func (h *AuthHandler) RefreshTokenHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("refresh_token")
 		if err != nil {
@@ -28,8 +28,8 @@ func (a *AuthHandler) RefreshTokenHandler() http.HandlerFunc {
 		}
 		refreshToken := cookie.Value
 
-		tokenService := service.NewTokenService(a.cfg)
-		claims, err := tokenService.ValidateAccessToken(refreshToken)
+		tokenService := service.NewTokenService(h.cfg)
+		claims, err := tokenService.ValidateRefreshToken(refreshToken)
 		if err != nil {
 			http.Error(w, "Invalid or expired refresh token", http.StatusUnauthorized)
 			return
@@ -51,7 +51,7 @@ func (a *AuthHandler) RefreshTokenHandler() http.HandlerFunc {
 		http.SetCookie(w, &http.Cookie{
 			Name:     "refresh_token",
 			Value:    newRefreshToken,
-			Expires:  time.Now().Add(time.Duration(a.cfg.RefreshLifetimeMinutes) * time.Minute),
+			Expires:  time.Now().Add(time.Duration(h.cfg.RefreshLifetimeMinutes) * time.Minute),
 			HttpOnly: true,
 			Path:     "/",
 			SameSite: http.SameSiteStrictMode,
