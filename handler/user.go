@@ -10,6 +10,7 @@ import (
 	"project/food-delivery/response"
 	"project/food-delivery/service"
 	"project/food-delivery/util/validator"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -61,8 +62,8 @@ func (h *UserHandler) InsertUserHandler() http.HandlerFunc {
 			return
 		}
 
-		// Insert user and handle errors
-		err = h.userService.InsertUser(signupUser)
+		// Insert user to database, return the userId and handle errors
+		userId, err := h.userService.InsertUser(signupUser)
 		if err != nil {
 			if err.Error() == "email_already_exists" {
 				w.Header().Set("Content-Type", "application/json")
@@ -77,8 +78,36 @@ func (h *UserHandler) InsertUserHandler() http.HandlerFunc {
 		}
 		log.Printf("User created succesfully")
 
-		w.WriteHeader(http.StatusCreated) // 201 Created
-		json.NewEncoder(w).Encode(model.SignupUser{Name: signupUser.Name, Email: signupUser.Email})
+		//Generate access and refresh tokens
+		tokenService := service.NewTokenService(h.cfg)
+
+		accessString, err := tokenService.GenerateAccessToken(userId)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		refreshString, err := tokenService.GenerateRefreshToken(userId)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Set refresh token as httpOnly cookie
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    refreshString,
+			Expires:  time.Now().Add(time.Duration(h.cfg.RefreshLifetimeMinutes) * time.Minute),
+			HttpOnly: true,
+			Path:     "/",
+		})
+
+		resp := response.LoginResponse{
+			AccessToken: accessString,
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(resp)
 	}
 }
 
@@ -101,6 +130,7 @@ func (h *UserHandler) LoginHandler() http.HandlerFunc {
 		}
 
 		tokenService := service.NewTokenService(h.cfg)
+
 		accessString, err := tokenService.GenerateAccessToken(user.ID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -113,9 +143,16 @@ func (h *UserHandler) LoginHandler() http.HandlerFunc {
 			return
 		}
 
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    refreshString,
+			Expires:  time.Now().Add(time.Duration(h.cfg.RefreshLifetimeMinutes) * time.Minute),
+			HttpOnly: true,
+			Path:     "/",
+		})
+
 		resp := response.LoginResponse{
-			AccessToken:  accessString,
-			RefreshToken: refreshString,
+			AccessToken: accessString,
 		}
 
 		w.WriteHeader(http.StatusOK)

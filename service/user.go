@@ -13,7 +13,7 @@ func NewUserService(repo repository.UserRepository) *UserService {
 	return &UserService{userRepo: repo}
 }
 
-func (u *UserService) InsertUser(user model.SignupUser) error {
+func (u *UserService) InsertUser(user model.SignupUser) (int, error) {
 	return u.userRepo.InsertUser(user)
 }
 

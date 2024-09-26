@@ -19,32 +19,34 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (u *UserRepository) InsertUser(user model.SignupUser) error {
+func (u *UserRepository) InsertUser(user model.SignupUser) (int, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
-		return fmt.Errorf("error hashing paswword")
+		return 0, fmt.Errorf("error hashing paswword: %v", err)
 	}
 
-	stmt, err := u.db.Prepare("INSERT INTO users(name, email, hashed_password) VALUES ($1, $2, $3)")
+	stmt, err := u.db.Prepare("INSERT INTO users(name, email, hashed_password) VALUES ($1, $2, $3) RETURNING id")
 	if err != nil {
-		return fmt.Errorf("error preparing query")
+		return 0, fmt.Errorf("error preparing query: %v", err)
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(user.Name, user.Email, string(hashedPassword))
+	var userID int
+
+	err = stmt.QueryRow(user.Name, user.Email, string(hashedPassword)).Scan(&userID)
 	if err != nil {
-		log.Printf("Error executing statement: %v", err) // Log this error
+		log.Printf("Error executing statement: %v", err)
+
 		// Check for Postgres-specific unique constraint violation error
 		if pqerr, ok := err.(*pq.Error); ok {
-			// Check for constraint violation and specific field
 			if pqerr.Code == "23505" && pqerr.Constraint == "users_email_key" {
-				return fmt.Errorf("email_already_exists")
+				return 0, fmt.Errorf("email_already_exists")
 			}
 		}
 		// Handle other errors
-		return err
+		return 0, err
 	}
-	return nil
+	return userID, nil
 }
 
 func (u *UserRepository) GetUserByEmail(email string) (*model.User, error) {
