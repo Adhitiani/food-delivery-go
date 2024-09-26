@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"project/food-delivery/config"
 	"project/food-delivery/model"
 	"project/food-delivery/request"
 	"project/food-delivery/service"
@@ -12,11 +13,23 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func InsertUserHandler(userService *service.UserService) http.HandlerFunc {
+type UserHandler struct {
+	userService *service.UserService
+	cfg         *config.Config
+}
+
+func NewUserHandler(userService *service.UserService, cfg *config.Config) *UserHandler {
+	return &UserHandler{
+		userService: userService,
+		cfg:         cfg,
+	}
+}
+
+func (h *UserHandler) InsertUserHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var signupUser model.SignupUser
 
-		//Parse the request body to the user struct
+		//Parse the request body to the signupUser struct
 		err := json.NewDecoder(r.Body).Decode(&signupUser)
 		if err != nil {
 			log.Printf("Error decoding request body: %v", err)
@@ -48,7 +61,7 @@ func InsertUserHandler(userService *service.UserService) http.HandlerFunc {
 		}
 
 		// Insert user and handle errors
-		err = userService.InsertUser(signupUser)
+		err = h.userService.InsertUser(signupUser)
 		if err != nil {
 			if err.Error() == "email_already_exists" {
 				w.Header().Set("Content-Type", "application/json")
@@ -68,14 +81,14 @@ func InsertUserHandler(userService *service.UserService) http.HandlerFunc {
 	}
 }
 
-func LoginHandler(userService *service.UserService) http.HandlerFunc {
+func (h *UserHandler) LoginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req := new(request.LoginRequest)
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		user, err := userService.GetUserByEmail(req.Email)
+		user, err := h.userService.GetUserByEmail(req.Email)
 		if err != nil {
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 			return
