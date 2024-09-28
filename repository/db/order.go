@@ -64,7 +64,6 @@ func (o *OrderRepository) CreateOrder(order model.Order) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("error to commit transaction %v", err)
 	}
-
 	fmt.Printf("Successful creating order with id %d\n", orderID)
 	return orderID, nil
 }
@@ -72,16 +71,16 @@ func (o *OrderRepository) CreateOrder(order model.Order) (int, error) {
 func (o *OrderRepository) GetOrderDetailsById(orderID int) (*model.Order, error) {
 	var order model.Order
 	err := o.db.QueryRow(`
-    SELECT o.id, o.total_price, o.address, o.phone, o.payment_method, TO_CHAR(o.created_at,'YYYY-MM-DD HH24:MI:SS') as created_at, s.name, s.id 
+    SELECT o.id, o.total_price, o.address, o.phone, o.payment_method, TO_CHAR(o.created_at,'YYYY-MM-DD HH24:MI:SS') as created_at, s.name, s.id, u.name, u.id 
     FROM orders o
     JOIN suppliers s ON o.supplier_id = s.id
+		JOIN users u ON o.user_id = u.id
     WHERE o.id = $1`, orderID).Scan(
-		&order.ID, &order.TotalPrice, &order.Address, &order.Phone, &order.PaymentMethod, &order.CreatedAt, &order.SupplierName, &order.SupplierID,
+		&order.ID, &order.TotalPrice, &order.Address, &order.Phone, &order.PaymentMethod, &order.CreatedAt, &order.SupplierName, &order.SupplierID, &order.UserName, &order.UserID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error order not found %v", err)
 	}
-
 	// Fetch order items
 	rows, err := o.db.Query(`
 	SELECT oi.menu_item_id, oi.quantity, oi.price, mi.name 
@@ -104,9 +103,50 @@ func (o *OrderRepository) GetOrderDetailsById(orderID int) (*model.Order, error)
 		item.OrderID = orderID // Set the OrderID for each item
 		items = append(items, item)
 	}
-
 	// Set the fetched items in the order struct
 	order.Items = items
-
 	return &order, nil
+}
+
+func (o *OrderRepository) GetOrdersByUserId(userId int) ([]model.Order, error) {
+
+	query := `
+    SELECT o.id, o.total_price, o.address, o.phone, o.payment_method, TO_CHAR(o.created_at,'YYYY-MM-DD HH24:MI:SS') as created_at, s.name, s.id, u.name, u.id 
+    FROM orders o
+    JOIN suppliers s ON o.supplier_id = s.id
+		JOIN users u ON o.user_id = u.id
+    WHERE o.user_id = $1
+	`
+	stmt, err := o.db.Prepare(query)
+	if err != nil {
+		return nil, fmt.Errorf("error preparing query %v", err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(userId)
+	if err != nil {
+		return nil, fmt.Errorf("error order not found %v", err)
+	}
+
+	defer rows.Close()
+
+	var orders []model.Order
+
+	for rows.Next() {
+		var order model.Order
+
+		err := rows.Scan(
+			&order.ID, &order.TotalPrice, &order.Address, &order.Phone, &order.PaymentMethod, &order.CreatedAt, &order.SupplierName, &order.SupplierID, &order.UserName, &order.UserID,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error: failed to scan orders %v", err)
+		}
+		orders = append(orders, order)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during rows iteration: %v", err)
+	}
+
+	return orders, nil
 }

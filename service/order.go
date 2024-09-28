@@ -20,3 +20,7 @@ func (o *OrderService) CreateOrder(order model.Order) (int, error) {
 func (o *OrderService) GetOrderDetailsById(orderID int) (*model.Order, error) {
 	return o.repo.GetOrderDetailsById(orderID)
 }
+
+func (o *OrderService) GetOrdersByUserId(userId int) ([]model.Order, error) {
+	return o.repo.GetOrdersByUserId(userId)
+}

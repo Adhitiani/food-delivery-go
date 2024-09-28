@@ -62,7 +62,7 @@ func GetOrderDetailsById(orderService *service.OrderService) http.HandlerFunc {
 		}
 
 		//write Json data to response
-		w.Header().Set("Content-Type", "appliaction/json")
+		w.Header().Set("Content-Type", "application/json")
 		_, err = w.Write(jsonData)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error writing JSON response: %v", err), http.StatusInternalServerError)

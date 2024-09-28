@@ -2,7 +2,8 @@ package model
 
 type Order struct {
 	ID            int         `json:"id"`
-	UserID        int         `json:"user_id"`       // User ID for the order
+	UserID        int         `json:"user_id"`
+	UserName      string      `json:"user_name"`     // User ID for the order
 	SupplierID    int         `json:"supplier_id"`   // Supplier ID from the order
 	SupplierName  string      `json:"supplier_name"` // Supplier name for display
 	TotalPrice    float64     `json:"total_price"`

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"project/food-delivery/config"
 	"project/food-delivery/handler"
+	"project/food-delivery/middleware"
 	postgres "project/food-delivery/repository/db"
 	"project/food-delivery/service"
 	"project/food-delivery/util"
@@ -36,30 +37,37 @@ func Start(cfg *config.Config) {
 	userRepo := postgres.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
 
+	tokenService := service.NewTokenService(cfg)
+
 	//update price and suppliers
 	menuService.PriceUpdater()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go supplierService.SupplierUpdater(ctx)
 
-	// Pass both userService and cfg to the UserHandler
-	userHandler := handler.NewUserHandler(userService, cfg)
+	//Handlers
+	userHandler := handler.NewUserHandler(userService, orderService, cfg)
 	authHandler := handler.NewAuthHandler(cfg)
 
 	//Routes
 	mux := http.NewServeMux()
+
+	// unprotected routes
 	mux.HandleFunc("GET /suppliers", handler.GetAllSuppliersHandler(supplierService))
 	mux.HandleFunc("GET /suppliers/{id}", handler.GetSupplierByIdHandler(supplierService))
 	mux.HandleFunc("GET /suppliers/{id}/menus", handler.GetMenuItemBySupplierIdHandler(menuService, supplierService))
 	mux.HandleFunc("GET /suppliers/{id}/categories", handler.GetSupplierCategoriesHandler(supplierService))
 	mux.HandleFunc("GET /categories", handler.GetAllTypeHandler(typeService))
 	mux.HandleFunc("GET /categories/suppliers/{category}", handler.GetSupplierByMenuType(supplierService))
-	mux.HandleFunc("POST /order", handler.CreateOrder(orderService))
-	mux.HandleFunc("GET /order/{id}", handler.GetOrderDetailsById(orderService))
 	mux.HandleFunc("POST /user/login", userHandler.LoginHandler())
 	mux.HandleFunc("POST /user/signup", userHandler.InsertUserHandler())
+
+	// protected routes
+	mux.HandleFunc("POST /order", handler.CreateOrder(orderService))
+	mux.HandleFunc("GET /order/{id}", handler.GetOrderDetailsById(orderService))
 	mux.HandleFunc("GET /user/profile", userHandler.GetProfile())
 	mux.HandleFunc("POST /user/refresh", authHandler.RefreshTokenHandler())
+	mux.Handle("GET /user/order", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetOrdersByUserId())))
 
 	// CORS middleware
 	handler := util.CorsMiddleware(mux)

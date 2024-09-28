@@ -2,9 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"project/food-delivery/config"
+	"project/food-delivery/contextkeys"
 	"project/food-delivery/model"
 	"project/food-delivery/request"
 	"project/food-delivery/response"
@@ -16,14 +18,16 @@ import (
 )
 
 type UserHandler struct {
-	userService *service.UserService
-	cfg         *config.Config
+	userService  *service.UserService
+	orderService *service.OrderService
+	cfg          *config.Config
 }
 
-func NewUserHandler(userService *service.UserService, cfg *config.Config) *UserHandler {
+func NewUserHandler(userService *service.UserService, orderService *service.OrderService, cfg *config.Config) *UserHandler {
 	return &UserHandler{
-		userService: userService,
-		cfg:         cfg,
+		userService:  userService,
+		orderService: orderService,
+		cfg:          cfg,
 	}
 }
 
@@ -190,4 +194,34 @@ func (h *UserHandler) GetProfile() http.HandlerFunc {
 
 	}
 
+}
+
+func (h *UserHandler) GetOrdersByUserId() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userIdValue := r.Context().Value(contextkeys.UserIDKey)
+		userId, ok := userIdValue.(int)
+		if !ok {
+			http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+			return
+		}
+
+		orders, err := h.orderService.GetOrdersByUserId(userId)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error getting orders by user ID: %d, %v", userId, err), http.StatusInternalServerError)
+			return
+		}
+
+		jsonData, err := json.Marshal(orders)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error marshalling order to JSON: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_, err = w.Write(jsonData)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error writing JSON response: %v", err), http.StatusInternalServerError)
+			return
+		}
+	}
 }
