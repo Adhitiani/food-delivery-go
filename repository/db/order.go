@@ -115,7 +115,7 @@ func (o *OrderRepository) GetOrdersByUserId(userId int) ([]model.Order, error) {
     FROM orders o
     JOIN suppliers s ON o.supplier_id = s.id
 		JOIN users u ON o.user_id = u.id
-    WHERE o.user_id = $1
+    WHERE o.user_id = $1 ORDER BY o.id DESC
 	`
 	stmt, err := o.db.Prepare(query)
 	if err != nil {
