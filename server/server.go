@@ -63,10 +63,10 @@ func Start(cfg *config.Config) {
 	mux.HandleFunc("POST /user/signup", userHandler.InsertUserHandler())
 
 	// protected routes
-	mux.HandleFunc("POST /order", handler.CreateOrder(orderService))
-	mux.HandleFunc("GET /order/{id}", handler.GetOrderDetailsById(orderService))
-	mux.HandleFunc("GET /user/profile", userHandler.GetProfile())
-	mux.HandleFunc("POST /user/refresh", authHandler.RefreshTokenHandler())
+	mux.Handle("POST /order", middleware.AuthMiddleware(tokenService, http.HandlerFunc(handler.CreateOrder(orderService))))
+	mux.Handle("GET /order/{id}", middleware.AuthMiddleware(tokenService, handler.GetOrderDetailsById(orderService)))
+	mux.Handle("GET /user/profile", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetProfile())))
+	mux.Handle("POST /user/refresh", middleware.AuthMiddleware(tokenService, http.HandlerFunc(authHandler.RefreshTokenHandler())))
 	mux.Handle("GET /user/order", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetOrdersByUserId())))
 
 	// CORS middleware

@@ -122,6 +122,18 @@ func (h *UserHandler) LoginHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
+		if req.Email == "" || req.Password == "" {
+			http.Error(w, "Email and password can't be blank", http.StatusBadRequest)
+			return
+		}
+
+		err := validator.ValidateEmail(req.Email)
+		if err != nil {
+			http.Error(w, "Invalid email format", http.StatusBadRequest)
+			return
+		}
+
 		user, err := h.userService.GetUserByEmail(req.Email)
 		if err != nil {
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
@@ -153,6 +165,8 @@ func (h *UserHandler) LoginHandler() http.HandlerFunc {
 			Expires:  time.Now().Add(time.Duration(h.cfg.RefreshLifetimeMinutes) * time.Minute),
 			HttpOnly: true,
 			Path:     "/",
+			//SameSite: http.SameSiteNoneMode, // Allow cross-origin cookies
+			// Secure:   true, // Do not use Secure in development (HTTP), use it in production (HTTPS)
 		})
 
 		resp := response.TokenResponse{
@@ -167,16 +181,15 @@ func (h *UserHandler) LoginHandler() http.HandlerFunc {
 
 func (h *UserHandler) GetProfile() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenService := service.NewTokenService(h.cfg)
-		claims, err := tokenService.ValidateAccessToken(tokenService.GetTokenFromBearerString(r.Header.Get("Authorization")))
-		if err != nil {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-			return
+		// get the user id from the context set by authmiddleware
+		userId := r.Context().Value(contextkeys.UserIDKey)
+		if userId == nil {
+			http.Error(w, "No user Id in the context", http.StatusUnauthorized)
 		}
 
-		log.Printf("claims.ID, %v", claims.ID)
+		log.Printf("User ID from context: %v", userId)
 
-		user, err := h.userService.GetUserById(claims.ID)
+		user, err := h.userService.GetUserById(userId.(int))
 		if err != nil {
 			log.Printf("Error retrieving user: %v", err)
 			http.Error(w, "User does not Exist", http.StatusBadRequest)
@@ -191,7 +204,6 @@ func (h *UserHandler) GetProfile() http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)
-
 	}
 
 }

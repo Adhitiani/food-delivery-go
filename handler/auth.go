@@ -54,7 +54,8 @@ func (h *AuthHandler) RefreshTokenHandler() http.HandlerFunc {
 			Expires:  time.Now().Add(time.Duration(h.cfg.RefreshLifetimeMinutes) * time.Minute),
 			HttpOnly: true,
 			Path:     "/",
-			SameSite: http.SameSiteStrictMode,
+			// SameSite: http.SameSiteNoneMode, // Allow cross-origin requests
+			// Secure:   false,                 // Set this to true if using HTTPS
 		})
 
 		// Send the new access token in the response body

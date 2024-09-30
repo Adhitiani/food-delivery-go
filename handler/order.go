@@ -50,7 +50,7 @@ func GetOrderDetailsById(orderService *service.OrderService) http.HandlerFunc {
 		//get the struct type Order
 		order, err := orderService.GetOrderDetailsById(id)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Error get order by id: %d, %v", id, err), http.StatusInternalServerError)
+			http.Error(w, "Invalid Order ID", http.StatusInternalServerError)
 			return
 		}
 

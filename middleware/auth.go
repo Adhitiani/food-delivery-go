@@ -12,6 +12,12 @@ func AuthMiddleware(tokenService *service.TokenService, next http.Handler) http.
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Incoming request for %s", r.URL.Path)
 
+		// Skip access token validation for the refresh route
+		if r.URL.Path == "/user/refresh" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		claims, err := tokenService.ValidateAccessToken(tokenService.GetTokenFromBearerString(r.Header.Get("Authorization")))
 		if err != nil {
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
