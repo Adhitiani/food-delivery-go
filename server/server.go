@@ -53,21 +53,21 @@ func Start(cfg *config.Config) {
 	mux := http.NewServeMux()
 
 	// unprotected routes
-	mux.HandleFunc("GET /suppliers", handler.GetAllSuppliersHandler(supplierService))
-	mux.HandleFunc("GET /suppliers/{id}", handler.GetSupplierByIdHandler(supplierService))
-	mux.HandleFunc("GET /suppliers/{id}/menus", handler.GetMenuItemBySupplierIdHandler(menuService, supplierService))
-	mux.HandleFunc("GET /suppliers/{id}/categories", handler.GetSupplierCategoriesHandler(supplierService))
-	mux.HandleFunc("GET /categories", handler.GetAllTypeHandler(typeService))
-	mux.HandleFunc("GET /categories/suppliers/{category}", handler.GetSupplierByMenuType(supplierService))
-	mux.HandleFunc("POST /user/login", userHandler.LoginHandler())
-	mux.HandleFunc("POST /user/signup", userHandler.InsertUserHandler())
+	mux.HandleFunc("GET /api/suppliers", handler.GetAllSuppliersHandler(supplierService))
+	mux.HandleFunc("GET /api/suppliers/{id}", handler.GetSupplierByIdHandler(supplierService))
+	mux.HandleFunc("GET /api/suppliers/{id}/menus", handler.GetMenuItemBySupplierIdHandler(menuService, supplierService))
+	mux.HandleFunc("GET /api/suppliers/{id}/categories", handler.GetSupplierCategoriesHandler(supplierService))
+	mux.HandleFunc("GET /api/categories", handler.GetAllTypeHandler(typeService))
+	mux.HandleFunc("GET /api/categories/suppliers/{category}", handler.GetSupplierByMenuType(supplierService))
+	mux.HandleFunc("POST /api/user/login", userHandler.LoginHandler())
+	mux.HandleFunc("POST /api/user/signup", userHandler.InsertUserHandler())
 
 	// protected routes
-	mux.Handle("POST /order", middleware.AuthMiddleware(tokenService, http.HandlerFunc(handler.CreateOrder(orderService))))
-	mux.Handle("GET /order/{id}", middleware.AuthMiddleware(tokenService, handler.GetOrderDetailsById(orderService)))
-	mux.Handle("GET /user/profile", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetProfile())))
-	mux.Handle("POST /user/refresh", middleware.AuthMiddleware(tokenService, http.HandlerFunc(authHandler.RefreshTokenHandler())))
-	mux.Handle("GET /user/order", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetOrdersByUserId())))
+	mux.Handle("POST /api/order", middleware.AuthMiddleware(tokenService, http.HandlerFunc(handler.CreateOrder(orderService))))
+	mux.Handle("GET /api/order/{id}", middleware.AuthMiddleware(tokenService, handler.GetOrderDetailsById(orderService)))
+	mux.Handle("GET /api/user/profile", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetProfile())))
+	mux.Handle("POST /api/user/refresh", middleware.AuthMiddleware(tokenService, http.HandlerFunc(authHandler.RefreshTokenHandler())))
+	mux.Handle("GET /api/user/order", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetOrdersByUserId())))
 
 	// CORS middleware
 	handler := util.CorsMiddleware(mux)
