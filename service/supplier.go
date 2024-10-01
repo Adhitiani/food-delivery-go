@@ -236,7 +236,7 @@ func (s *SupplierService) FetchAndInsertSuppliers() error {
 		})
 	}
 
-	// Collect results in a separate goroutine
+	// Collect results
 	go func() {
 		for res := range resCh {
 			suppliers := res.([]model.Supplier) // Cast `any` to `[]model.Supplier`

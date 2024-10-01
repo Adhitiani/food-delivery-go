@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"project/food-delivery/config"
 	"project/food-delivery/response"
@@ -23,6 +24,8 @@ func (h *AuthHandler) RefreshTokenHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("refresh_token")
 		if err != nil {
+			log.Println("Refresh token cookie not found")
+
 			http.Error(w, "No Refresh Token", http.StatusUnauthorized)
 			return
 		}
@@ -54,8 +57,8 @@ func (h *AuthHandler) RefreshTokenHandler() http.HandlerFunc {
 			Expires:  time.Now().Add(time.Duration(h.cfg.RefreshLifetimeMinutes) * time.Minute),
 			HttpOnly: true,
 			Path:     "/",
-			// SameSite: http.SameSiteNoneMode, // Allow cross-origin requests
-			// Secure:   false,                 // Set this to true if using HTTPS
+			SameSite: http.SameSiteNoneMode, // Allow cross-origin requests
+			Secure:   false,                 // Set this to true if using HTTPS
 		})
 
 		// Send the new access token in the response body

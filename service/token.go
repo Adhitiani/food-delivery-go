@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"log"
 	"project/food-delivery/config"
 	"strings"
 	"time"
@@ -53,7 +54,11 @@ func (s *TokenService) ValidateRefreshToken(tokenString string) (*JwtCustomClaim
 }
 
 func (s *TokenService) validateToken(tokenString, secret string) (*JwtCustomClaims, error) {
+	log.Println("Starting token validation for token:", tokenString)
+
 	token, err := jwt.ParseWithClaims(tokenString, &JwtCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		log.Println("Token signing method:", token.Method.Alg())
+
 		return []byte(secret), nil
 	})
 	if err != nil {
@@ -64,7 +69,7 @@ func (s *TokenService) validateToken(tokenString, secret string) (*JwtCustomClai
 	if !ok || !token.Valid {
 		return nil, errors.New("failed to parse token claims")
 	}
-
+	log.Println("Token validated for user ID:", claims.ID)
 	return claims, nil
 }
 

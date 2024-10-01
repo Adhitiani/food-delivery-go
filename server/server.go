@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -40,10 +39,7 @@ func Start(cfg *config.Config) {
 	tokenService := service.NewTokenService(cfg)
 
 	//update price and suppliers
-	menuService.PriceUpdater()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go supplierService.SupplierUpdater(ctx)
+	go menuService.PriceAndSupplierUpdater(supplierService)
 
 	//Handlers
 	userHandler := handler.NewUserHandler(userService, orderService, cfg)
