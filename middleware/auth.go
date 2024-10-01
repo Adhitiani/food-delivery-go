@@ -8,18 +8,13 @@ import (
 	"project/food-delivery/service"
 )
 
-func AuthMiddleware(tokenService *service.TokenService, next http.Handler) http.Handler {
+func AuthMiddleware(tokenService service.TokenServiceInterface, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Incoming request for %s", r.URL.Path)
 
 		// Skip access token validation for the refresh and logout route
-		if r.URL.Path == "/api/user/refresh" {
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		if r.URL.Path == "/api/user/logout" {
-			next.ServeHTTP(w, r)
+		if r.URL.Path == "/api/user/refresh" || r.URL.Path == "/api/user/logout" {
+			next.ServeHTTP(w, r) // Proceed without validating the token
 			return
 		}
 
@@ -29,7 +24,6 @@ func AuthMiddleware(tokenService *service.TokenService, next http.Handler) http.
 			return
 		}
 
-		// Assuming claims.ID is an int; if not, convert as needed
 		ctx := context.WithValue(r.Context(), contextkeys.UserIDKey, claims.ID)
 		log.Printf("Setting user ID in context: %v", claims.ID)
 		r = r.WithContext(ctx)
