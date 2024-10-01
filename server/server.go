@@ -64,7 +64,7 @@ func Start(cfg *config.Config) {
 	mux.Handle("GET /api/user/profile", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetProfile())))
 	mux.Handle("POST /api/user/refresh", middleware.AuthMiddleware(tokenService, http.HandlerFunc(authHandler.RefreshTokenHandler())))
 	mux.Handle("GET /api/user/order", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetOrdersByUserId())))
-
+	mux.Handle("POST /api/user/logout", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.LogoutHandler())))
 	// CORS middleware
 	handler := util.CorsMiddleware(mux)
 

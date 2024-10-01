@@ -179,6 +179,22 @@ func (h *UserHandler) LoginHandler() http.HandlerFunc {
 
 }
 
+func (h *UserHandler) LogoutHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    "",
+			Expires:  time.Unix(0, 0),
+			HttpOnly: true,
+			Path:     "/",
+			//SameSite: http.SameSiteNoneMode, // Allow cross-origin cookies
+			//Secure:   true, // Do not use Secure in development (HTTP), use it in production (HTTPS)
+		})
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Logged out successfully"))
+	}
+}
+
 func (h *UserHandler) GetProfile() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get the user id from the context set by authmiddleware
