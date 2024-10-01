@@ -12,8 +12,13 @@ func AuthMiddleware(tokenService *service.TokenService, next http.Handler) http.
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Incoming request for %s", r.URL.Path)
 
-		// Skip access token validation for the refresh route
+		// Skip access token validation for the refresh and logout route
 		if r.URL.Path == "/api/user/refresh" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if r.URL.Path == "/api/user/logout" {
 			next.ServeHTTP(w, r)
 			return
 		}
