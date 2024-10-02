@@ -65,8 +65,13 @@ func Start(cfg *config.Config) {
 	mux.Handle("POST /api/user/refresh", middleware.AuthMiddleware(tokenService, http.HandlerFunc(authHandler.RefreshTokenHandler())))
 	mux.Handle("GET /api/user/order", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.GetOrdersByUserId())))
 	mux.Handle("POST /api/user/logout", middleware.AuthMiddleware(tokenService, http.HandlerFunc(userHandler.LogoutHandler())))
+
+	mux.HandleFunc("/", handler.NotFoundHandler)
+
+	// Wrap the mux with RecoveryMiddleware
+	handler := middleware.RecoveryMiddleware(mux)
 	// CORS middleware
-	handler := util.CorsMiddleware(mux)
+	handler = util.CorsMiddleware(handler)
 
 	//Start server
 	log.Println("Starting server on", cfg.Port)
