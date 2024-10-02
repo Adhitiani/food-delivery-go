@@ -41,7 +41,7 @@ func (m *MenuItemService) FetchAndInsertMenuItem() error {
 
 	// Append jobs to worker pool for each supplier
 	for _, supplier := range Ids {
-		supplier := supplier // Capture supplier variable in the closure
+		supplier := supplier
 		wPool.Append(func() (any, error) {
 			url := fmt.Sprintf("https://foodapi.golang.nixdev.co/suppliers/%d/menu", supplier.ExternalId)
 			menuItems, err := m.FetchMenuForSupplier(url, supplier.Id)
@@ -111,71 +111,6 @@ func (m *MenuItemService) FetchMenuForSupplier(url string, supplierId int) ([]mo
 	return menuItems.Menu, nil
 }
 
-// func (m *MenuItemService) FetchMenuItem() ([]model.MenuItem, error) {
-
-// 	client := util.CreateInsecureClient()
-// 	if m.supplierRepo == nil {
-// 		return nil, fmt.Errorf("supplierRepo is not initialized")
-// 	}
-// 	if m.menuRepo == nil {
-// 		return nil, fmt.Errorf("menuItemRepo is not initialized")
-// 	}
-
-// 	Ids, err := m.supplierRepo.GetSuppliersIdAndExternalId()
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error get all supplier id: %v", err)
-// 	}
-
-// 	var allMenusItems []model.MenuItem
-// 	for _, supplier := range Ids {
-// 		url := fmt.Sprintf("https://foodapi.golang.nixdev.co/suppliers/%d/menu", supplier.ExternalId)
-
-// 		resp, err := client.Get(url)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("error fetching data: %v", err)
-// 		}
-
-// 		defer resp.Body.Close()
-
-// 		body, err := io.ReadAll(resp.Body)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("error reading body %v", err)
-// 		}
-
-// 		var menuItems model.MenuResponse
-
-// 		err = json.Unmarshal(body, &menuItems)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("error unmarshalling data %v", err)
-// 		}
-
-// 		// Add supplier ID to each menu item
-// 		for i := range menuItems.Menu {
-// 			menuItems.Menu[i].SupplierId = supplier.Id
-// 		}
-
-// 		allMenusItems = append(allMenusItems, menuItems.Menu...)
-// 	}
-// 	//log.Printf("menu items : %v", allMenusItems)
-// 	log.Printf("total menu items : %d", len(allMenusItems))
-// 	return allMenusItems, nil
-
-// }
-
-// func (m *MenuItemService) FetchAndInsertMenuItem() error {
-// 	allMenusItems, err := m.FetchMenuItem()
-// 	if err != nil {
-// 		log.Fatalf("error fetching menuItem: %v", err)
-// 	}
-
-// 	err = m.menuRepo.InsertMenuItems(allMenusItems)
-// 	if err != nil {
-// 		log.Fatalf("error inserting menuItem to database: %v", err)
-// 	}
-// 	//log.Println("MenuItem inserted into the database successfully!")
-// 	return nil
-// }
-
 func (m *MenuItemService) PriceAndSupplierUpdater(supplierService *SupplierService) {
 	// Function to run updates and measure execution time
 	runUpdates := func() {
@@ -199,16 +134,13 @@ func (m *MenuItemService) PriceAndSupplierUpdater(supplierService *SupplierServi
 		log.Printf("runUpdates completed in %v", elapsed)
 	}
 
-	// Run immediately when the server starts
 	runUpdates()
 
-	// Start ticker for periodic updates
 	ticker := time.NewTicker(10 * time.Minute)
 	defer ticker.Stop()
 
 	go func() {
 		for range ticker.C {
-			// Run updates every 10 minutes and log how long they take
 			runUpdates()
 		}
 	}()

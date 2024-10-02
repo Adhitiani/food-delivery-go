@@ -14,7 +14,7 @@ func AuthMiddleware(tokenService service.TokenServiceInterface, next http.Handle
 
 		// Skip access token validation for the refresh and logout route
 		if r.URL.Path == "/api/user/refresh" || r.URL.Path == "/api/user/logout" {
-			next.ServeHTTP(w, r) // Proceed without validating the token
+			next.ServeHTTP(w, r)
 			return
 		}
 

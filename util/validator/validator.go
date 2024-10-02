@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-// NotBlank() returns true if a value is not an empty string.
 func NotBlank(field, value string) error {
 	if strings.TrimSpace(value) == "" {
 		return errors.New(field + " is required")

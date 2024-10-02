@@ -147,13 +147,13 @@ func (m *MenuItemRespository) InsertMenuItems(menuItems []model.MenuItem) error 
 		}
 
 		_, err = stmt.Exec(
-			item.ID,                    // 1. external_id
-			item.SupplierId,            // 2. supplier_id
-			item.Name,                  // 3. name
-			item.Price,                 // 4. price
-			item.Image,                 // 5. image
-			pq.Array(item.Ingredients), // 6. ingredients (as an array)
-			menuTypeId,                 // 7. menu_type_id
+			item.ID,
+			item.SupplierId,
+			item.Name,
+			item.Price,
+			item.Image,
+			pq.Array(item.Ingredients),
+			menuTypeId,
 		)
 		if err != nil {
 			return fmt.Errorf("error inserting menu item %v: %v", item.Name, err)
@@ -161,25 +161,6 @@ func (m *MenuItemRespository) InsertMenuItems(menuItems []model.MenuItem) error 
 	}
 	return nil
 }
-
-// func (m *MenuItemRespository) GetOrInsertMenuType(menuType string) (int, error) {
-// 	var menuTypeId int
-// 	// First, check if the menu type already exists
-// 	query := `SELECT id FROM menu_types WHERE name = $1`
-// 	err := m.db.QueryRow(query, menuType).Scan(&menuTypeId)
-// 	if err == sql.ErrNoRows {
-// 		// If the menu type does not exist, insert it
-// 		insertQuery := `INSERT INTO menu_types (name) VALUES ($1) RETURNING id`
-// 		err = m.db.QueryRow(insertQuery, menuType).Scan(&menuTypeId)
-// 		if err != nil {
-// 			return 0, fmt.Errorf("failed to insert menu type: %v", err)
-// 		}
-// 	} else if err != nil {
-// 		return 0, fmt.Errorf("failed to get menu type: %v", err)
-// 	}
-
-// 	return menuTypeId, nil
-// }
 
 func (m *MenuItemRespository) GetOrInsertMenuType(menuType string) (int, error) {
 	var menuTypeId int
