@@ -81,7 +81,7 @@ func (o *OrderRepository) GetOrderDetailsById(orderID int) (*model.Order, error)
 	if err != nil {
 		return nil, fmt.Errorf("error order not found %v", err)
 	}
-	// Fetch order items
+
 	rows, err := o.db.Query(`
 	SELECT oi.menu_item_id, oi.quantity, oi.price, mi.name 
 	FROM order_items oi
@@ -100,10 +100,10 @@ func (o *OrderRepository) GetOrderDetailsById(orderID int) (*model.Order, error)
 		if err != nil {
 			return nil, fmt.Errorf("error: failed to scan order items %v", err)
 		}
-		item.OrderID = orderID // Set the OrderID for each item
+		item.OrderID = orderID
 		items = append(items, item)
 	}
-	// Set the fetched items in the order struct
+
 	order.Items = items
 	return &order, nil
 }

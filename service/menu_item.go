@@ -25,7 +25,7 @@ func NewMenuItemService(repo repository.MenuItemRepository, supplierRepo reposit
 }
 
 func (m *MenuItemService) FetchAndInsertMenuItem() error {
-	// Fetch supplier IDs
+
 	Ids, err := m.supplierRepo.GetSuppliersIdAndExternalId()
 	if err != nil {
 		return fmt.Errorf("error getting supplier IDs: %v", err)
@@ -35,11 +35,9 @@ func (m *MenuItemService) FetchAndInsertMenuItem() error {
 	resCh := make(chan any)
 	errCh := make(chan error)
 
-	// Create worker pool
 	wPool := pool.NewWorkerPool(resCh, errCh).WithBrokerCount(maxWorkers)
 	wPool.Start()
 
-	// Append jobs to worker pool for each supplier
 	for _, supplier := range Ids {
 		supplier := supplier
 		wPool.Append(func() (any, error) {
@@ -52,7 +50,6 @@ func (m *MenuItemService) FetchAndInsertMenuItem() error {
 		})
 	}
 
-	// Collect results in a separate goroutine
 	go func() {
 		for res := range resCh {
 			menuItems := res.([]model.MenuItem)
@@ -63,10 +60,9 @@ func (m *MenuItemService) FetchAndInsertMenuItem() error {
 		}
 	}()
 
-	// Shutdown the worker pool
 	go func() {
-		wPool.Shutdown() // This will close resCh and errCh
-		close(errCh)     // Close error channel after worker pool shuts down
+		wPool.Shutdown()
+		close(errCh)
 	}()
 
 	// Handle errors
@@ -84,7 +80,6 @@ func (m *MenuItemService) FetchAndInsertMenuItem() error {
 	return nil
 }
 
-// FetchMenuForSupplier fetches menu items for a specific supplier
 func (m *MenuItemService) FetchMenuForSupplier(url string, supplierId int) ([]model.MenuItem, error) {
 	client := util.CreateInsecureClient()
 	resp, err := client.Get(url)
@@ -112,9 +107,9 @@ func (m *MenuItemService) FetchMenuForSupplier(url string, supplierId int) ([]mo
 }
 
 func (m *MenuItemService) PriceAndSupplierUpdater(supplierService *SupplierService) {
-	// Function to run updates and measure execution time
+
 	runUpdates := func() {
-		start := time.Now() // Start timing
+		start := time.Now()
 
 		// Update suppliers
 		if err := supplierService.FetchAndInsertSuppliers(); err != nil {
@@ -130,7 +125,7 @@ func (m *MenuItemService) PriceAndSupplierUpdater(supplierService *SupplierServi
 			log.Println("Price update successfully completed")
 		}
 
-		elapsed := time.Since(start) // Calculate elapsed time
+		elapsed := time.Since(start)
 		log.Printf("runUpdates completed in %v", elapsed)
 	}
 

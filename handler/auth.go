@@ -37,7 +37,7 @@ func (h *AuthHandler) RefreshTokenHandler() http.HandlerFunc {
 			http.Error(w, "Invalid or expired refresh token", http.StatusUnauthorized)
 			return
 		}
-		// Generate new access token and refresh token
+
 		newAccessToken, err := tokenService.GenerateAccessToken(claims.ID)
 		if err != nil {
 			http.Error(w, "Failed to generate access token", http.StatusInternalServerError)
@@ -50,18 +50,16 @@ func (h *AuthHandler) RefreshTokenHandler() http.HandlerFunc {
 			return
 		}
 
-		// Set the new refresh token in a cookie
 		http.SetCookie(w, &http.Cookie{
 			Name:     "refresh_token",
 			Value:    newRefreshToken,
 			Expires:  time.Now().Add(time.Duration(h.cfg.RefreshLifetimeMinutes) * time.Minute),
 			HttpOnly: true,
 			Path:     "/",
-			SameSite: http.SameSiteNoneMode, // Allow cross-origin requests
-			Secure:   false,                 // Set this to true if using HTTPS
+			SameSite: http.SameSiteNoneMode,
+			Secure:   false,
 		})
 
-		// Send the new access token in the response body
 		resp := response.TokenResponse{
 			AccessToken: newAccessToken,
 		}

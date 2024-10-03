@@ -35,7 +35,6 @@ func (h *UserHandler) InsertUserHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var signupUser model.SignupUser
 
-		//Parse the request body to the signupUser struct
 		err := json.NewDecoder(r.Body).Decode(&signupUser)
 		if err != nil {
 			log.Printf("Error decoding request body: %v", err)
@@ -58,7 +57,6 @@ func (h *UserHandler) InsertUserHandler() http.HandlerFunc {
 			validationErrors = append(validationErrors, model.ErrorResponseSignup{Field: "password", Message: err.Error()})
 		}
 
-		// If validation errors exist, return them as JSON
 		if len(validationErrors) > 0 {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
@@ -66,7 +64,6 @@ func (h *UserHandler) InsertUserHandler() http.HandlerFunc {
 			return
 		}
 
-		// Insert user to database, return the userId and handle errors
 		userId, err := h.userService.InsertUser(signupUser)
 		if err != nil {
 			if err.Error() == "email_already_exists" {
@@ -82,7 +79,6 @@ func (h *UserHandler) InsertUserHandler() http.HandlerFunc {
 		}
 		log.Printf("User created succesfully")
 
-		//Generate access and refresh tokens
 		tokenService := service.NewTokenService(h.cfg)
 
 		accessString, err := tokenService.GenerateAccessToken(userId)
@@ -97,7 +93,6 @@ func (h *UserHandler) InsertUserHandler() http.HandlerFunc {
 			return
 		}
 
-		// Set refresh token as httpOnly cookie
 		http.SetCookie(w, &http.Cookie{
 			Name:     "refresh_token",
 			Value:    refreshString,
@@ -165,8 +160,6 @@ func (h *UserHandler) LoginHandler() http.HandlerFunc {
 			Expires:  time.Now().Add(time.Duration(h.cfg.RefreshLifetimeMinutes) * time.Minute),
 			HttpOnly: true,
 			Path:     "/",
-			//SameSite: http.SameSiteNoneMode, // Allow cross-origin cookies
-			// Secure:   true, // Do not use Secure in development (HTTP), use it in production (HTTPS)
 		})
 
 		resp := response.TokenResponse{
@@ -187,8 +180,6 @@ func (h *UserHandler) LogoutHandler() http.HandlerFunc {
 			Expires:  time.Unix(0, 0),
 			HttpOnly: true,
 			Path:     "/",
-			//SameSite: http.SameSiteNoneMode, // Allow cross-origin cookies
-			//Secure:   true, // Do not use Secure in development (HTTP), use it in production (HTTPS)
 		})
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Logged out successfully"))

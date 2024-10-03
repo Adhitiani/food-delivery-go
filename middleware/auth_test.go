@@ -64,19 +64,16 @@ func (suite *AuthMiddlewareTestSuite) TestAuthMiddleware() {
 			mockTokenService := suite.tokenService.(*service.MockTokenService)
 			if testCase.validToken {
 				mockTokenService.ValidToken = true
-				mockTokenService.UserID = 1 // Simulate that the valid token corresponds to user ID 1
+				mockTokenService.UserID = 1
 			} else {
 				mockTokenService.ValidToken = false
 			}
 
-			// Create a new HTTP request with the Authorization header
 			req, _ := http.NewRequest("GET", "/api/user/any", nil)
 			req.Header.Set("Authorization", testCase.bearerString)
 
-			// Create a ResponseRecorder to record the response
 			rr := httptest.NewRecorder()
 
-			// Create a dummy handler to pass to the middleware
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 				if r.URL.Path == "/api/user/refresh" || r.URL.Path == "/api/user/logout" {

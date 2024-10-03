@@ -68,54 +68,6 @@ func (suite *TokenServiceTestSuite) TestGetTokenFromBearer() {
 	}
 }
 
-// func (suite *TokenServiceTestSuite) TestValidateToken() {
-// 	tokenString, _ := suite.tokenService.GenerateAccessToken(userId)
-// 	refreshToken, _ := suite.tokenService.GenerateRefreshToken(userId)
-
-// 	suite.cfg.AccessLifetimeMinutes = 0
-// 	expiredTokenString, _ := suite.tokenService.GenerateAccessToken(userId)
-
-// 	testCases := []util.TestCaseValidateAccessToken{
-// 		{
-// 			Name:         "Valid token",
-// 			AccessToken:  tokenString,
-// 			WantError:    false,
-// 			WantErrorMsg: "",
-// 			WantID:       userId,
-// 		},
-// 		{
-// 			Name:         "Invalid token",
-// 			AccessToken:  tokenString + " ",
-// 			WantError:    true,
-// 			WantErrorMsg: "token is malformed: could not base64 decode signature: illegal base64 data at input byte 43",
-// 			WantID:       0,
-// 		},
-// 		{
-// 			Name:         "Trying to use refresh token instead of access token",
-// 			AccessToken:  refreshToken,
-// 			WantError:    true,
-// 			WantErrorMsg: "token signature is invalid: signature is invalid",
-// 			WantID:       0,
-// 		},
-// 		{
-// 			Name:         "Expired token",
-// 			AccessToken:  expiredTokenString,
-// 			WantError:    true,
-// 			WantErrorMsg: "token has invalid claims: token is expired",
-// 			WantID:       0,
-// 		},
-// 	}
-
-// 	for _, testCase := range testCases {
-// 		suite.T().Run(testCase.Name, func(t *testing.T) {
-// 			gotClaims, gotErr := suite.tokenService.ValidateAccessToken(testCase.AccessToken)
-
-// 			util.AssertTokenValidationResult(t, testCase, gotClaims, gotErr)
-// 		})
-// 	}
-
-// }
-
 func BenchmarkGenerateAccessToken(b *testing.B) {
 	cfg := &config.Config{
 		Port:                   "",

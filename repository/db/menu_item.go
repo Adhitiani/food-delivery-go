@@ -140,8 +140,8 @@ func (m *MenuItemRespository) InsertMenuItems(menuItems []model.MenuItem) error 
 	defer stmt.Close()
 
 	for _, item := range menuItems {
-		// Ensure menuTypeId is fetched or derived correctly
-		menuTypeId, err := m.GetOrInsertMenuType(item.Type) // Implement this function to map `Type` to `menu_type_id`
+
+		menuTypeId, err := m.GetOrInsertMenuType(item.Type)
 		if err != nil {
 			return fmt.Errorf("error getting or inserting menu type: %v", err)
 		}
@@ -165,10 +165,9 @@ func (m *MenuItemRespository) InsertMenuItems(menuItems []model.MenuItem) error 
 func (m *MenuItemRespository) GetOrInsertMenuType(menuType string) (int, error) {
 	var menuTypeId int
 
-	// Try to retrieve the existing menu type ID
 	err := m.db.QueryRow(`SELECT id FROM menu_types WHERE name = $1`, menuType).Scan(&menuTypeId)
 	if err == sql.ErrNoRows {
-		// If not found, insert a new menu type
+
 		err = m.db.QueryRow(`INSERT INTO menu_types (name) VALUES ($1) RETURNING id`, menuType).Scan(&menuTypeId)
 		if err != nil {
 			return 0, fmt.Errorf("error inserting menu type: %v", err)

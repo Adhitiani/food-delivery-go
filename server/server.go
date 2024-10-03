@@ -35,7 +35,6 @@ func Start(cfg *config.Config) {
 	orderService := service.NewOrderService(orderRepo)
 	userRepo := postgres.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
-
 	tokenService := service.NewTokenService(cfg)
 
 	//update price and suppliers

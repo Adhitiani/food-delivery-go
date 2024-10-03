@@ -58,11 +58,11 @@ func (t *TypeRepository) GetAllType() ([]*model.Type, error) {
 
 func (r *TypeRepository) GetOrInsertMenuType(menuType string) (int, error) {
 	var menuTypeId int
-	// First, check if the menu type already exists
+
 	query := `SELECT id FROM menu_types WHERE name = $1`
 	err := r.db.QueryRow(query, menuType).Scan(&menuTypeId)
 	if err == sql.ErrNoRows {
-		// If the menu type does not exist, insert it
+
 		insertQuery := `INSERT INTO menu_types (name) VALUES ($1) RETURNING id`
 		err = r.db.QueryRow(insertQuery, menuType).Scan(&menuTypeId)
 		if err != nil {

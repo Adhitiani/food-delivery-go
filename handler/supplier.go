@@ -40,7 +40,7 @@ func GetAllSuppliersHandler(supplierService *service.SupplierService) http.Handl
 
 func GetSupplierByIdHandler(supplierService *service.SupplierService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// get the id from Url path
+
 		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil || id < 1 {
 			http.Error(w, "Invalid ID", http.StatusBadRequest)
@@ -53,14 +53,12 @@ func GetSupplierByIdHandler(supplierService *service.SupplierService) http.Handl
 			return
 		}
 
-		// Convert the suppliers to JSON
 		jsonData, err := json.Marshal(supplier)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error marshalling supplier to JSON: %v", err), http.StatusInternalServerError)
 			return
 		}
 
-		// Write the JSON data to the response
 		w.Header().Set("Content-Type", "application/json")
 		_, err = w.Write(jsonData)
 		if err != nil {
@@ -74,7 +72,7 @@ func GetSupplierByIdHandler(supplierService *service.SupplierService) http.Handl
 func GetSupplierByMenuType(supplierService *service.SupplierService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		menuType := strings.ToLower(r.PathValue("category"))
-		menuExist := true //DoesMenuTypeExist(menuType)
+		menuExist := true
 		if !menuExist {
 			http.Error(w, "Invalid Category", http.StatusBadRequest)
 			return

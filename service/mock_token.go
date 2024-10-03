@@ -6,14 +6,14 @@ import (
 
 type MockTokenService struct {
 	ValidToken bool
-	UserID     int // Add this field to simulate user ID retrieval
+	UserID     int
 }
 
 func (m *MockTokenService) ValidateToken(token string) (int, bool) {
 	if m.ValidToken {
-		return m.UserID, true // Return the mock user ID and valid status
+		return m.UserID, true
 	}
-	return 0, false // Return 0 and false if the token is invalid
+	return 0, false
 }
 
 func (m *MockTokenService) GenerateAccessToken(userID int) (string, error) {
