@@ -90,8 +90,36 @@ func (r *SupplierDbRepository) GetAllSuppliers() ([]*model.Supplier, error) {
 	}
 
 	// Return the slice of suppliers
-
 	log.Printf("Finish Get all supliers with total: %d suppliers", len(suppliers))
+	return suppliers, nil
+}
+
+func (r *SupplierDbRepository) GetAllSuppliersSimplified() ([]*model.Supplier, error) {
+	rows, err := r.db.Query(`SELECT id, extrnal_id, name, type, image, opening_time, closing_time FROM suppliers ORDER BY id `)
+	if err != nil {
+		return nil, fmt.Errorf("error executing query %v", err)
+	}
+
+	defer rows.Close()
+
+	var suppliers []*model.Supplier
+	for rows.Next() {
+		supplier := &model.Supplier{}
+
+		err := rows.Scan(&supplier.Id, &supplier.ExternalId, &supplier.Name, &supplier.Type, &supplier.Image, &supplier.OpeningTime, &supplier.ClosingTime)
+		if err != nil {
+			return nil, fmt.Errorf(`error in scanning %v`, err)
+		}
+		suppliers = append(suppliers, supplier)
+	}
+
+	// Check for errors during row iteration
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %v", err)
+	}
+
+	// Return the slice of suppliers
+	log.Printf("Finished getting all suppliers with total: %d suppliers", len(suppliers))
 
 	return suppliers, nil
 }

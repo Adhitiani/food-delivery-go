@@ -1,11 +1,14 @@
 package model
 
+// the purpose is to represent and manage different versions of the supplier data
+
 // create struct type to store the data
 type WorkingHours struct {
 	Opening string `json:"opening"`
 	Closing string `json:"closing"`
 }
 
+// This struct models the supplier data that you fetch directly from the API.
 type ApiSupplier struct {
 	Id           int          `json:"id"` // External ID from API
 	Name         string       `json:"name"`
